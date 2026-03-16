@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+RED='\033[0;31m'
+NC='\033[0m'
+
+CURRENT_BRANCH=$(git symbolic-ref --short HEAD)
+
+if [[ "$CURRENT_BRANCH" == "master"]]; then
+  echo -e "${RED}Bạn đang cố commit trực tiếp vào nhánh master.${NC}"
+  exit 1
+fi
+
+exit 0
