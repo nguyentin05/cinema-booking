@@ -18,6 +18,7 @@ class User(BaseModel, UserMixin):
     name = Column(String(50), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.USER)
     is_active = Column(Boolean, default=True)
+    avatar = Column(String(100), default="https://res.cloudinary.com/datah8lgd/image/upload/v1773747273/images_patu6r.png")
 
     @property
     def is_admin(self):
