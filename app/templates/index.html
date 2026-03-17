@@ -1,0 +1,47 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Trang chủ{% endblock %}
+
+{% block content %}
+<div class="row">
+    {% if movie_paginate %}
+    <ul class="pagination mt-2">
+        {% for i in range(1, movie_paginate.pages + 1) %}
+        {% if request.args.get('genre_id') %}
+        <li class="page-item">
+            <a class="page-link"
+               href="/?genre_id={{ request.args.get('genre_id') }}&page={{ i }}">
+                {{ i }}
+            </a>
+        </li>
+
+        {% elif request.args.get('kw') %}
+        <li class="page-item">
+            <a class="page-link"
+               href="/?kw={{ request.args.get('kw') }}&page={{ i }}">
+                {{ i }}
+            </a>
+        </li>
+
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="/?page={{ i }}">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+    </ul>
+    {% endif %}
+    {% for m in movies %}
+    <div class="col-md-3 col-6 p-2">
+        <div class="card">
+            <img class="card-img-top" src="{{ m.poster_url }}" alt="{{ m.title }}">
+            <div class="card-body">
+                <h4 class="card-title">{{ m.title }}</h4>
+                <a href="#" class="btn btn-primary">Xem chi tiết</a>
+                <button class="btn btn-danger">Đặt vé</button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
