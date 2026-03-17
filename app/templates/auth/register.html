@@ -9,7 +9,7 @@
 <div class="alert alert-danger">{{err_msg}}</div>
 {% endif %}
 
-<form method="post" action="{{ url_for('auth.register') }}">
+<form method="post" action="{{ url_for('auth.register') }}" enctype="multipart/form-data">
     <div class="form-floating mb-3 mt-3">
         <input type="text" class="form-control" id="name" placeholder="Enter Full name" name="name" required/>
         <label for="name">Full name</label>
@@ -31,10 +31,10 @@
         <label for="confirm">Confirm password</label>
     </div>
 
-    <!--    <div class="form-floating mt-3 mb-3">-->
-    <!--        <input type="file" class="form-control" id="avatar" name="avatar" required/>-->
-    <!--        <label for="avatar">Ảnh đại diện</label>-->
-    <!--    </div>-->
+    <div class="form-floating mt-3 mb-3">
+        <input type="file" class="form-control" id="avatar" name="avatar"/>
+        <label for="avatar">Avatar</label>
+    </div>
 
     <div class="form-floating mt-3 mb-3">
         <button type="submit" class="btn btn-danger">Submit</button>

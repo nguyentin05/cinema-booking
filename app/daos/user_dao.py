@@ -1,5 +1,6 @@
 import re
 
+import cloudinary.uploader
 from flask import current_app
 from sqlalchemy.exc import DatabaseError
 from werkzeug.exceptions import InternalServerError
@@ -12,7 +13,7 @@ def get_user_by_id(id):
     return User.query.get(id)
 
 
-def add_user(email, password, name):
+def add_user(email, password, name, avatar):
     _validate_name(name)
     _validate_password(password)
     _validate_email(email)
@@ -20,9 +21,11 @@ def add_user(email, password, name):
     if User.query.filter(User.email == email).first():
         raise ValueError("Email already exists")
 
+    user = User(email=email, name=name, password=password)
 
-    user = User(email=email, name=name)
-    user.password = password
+    if avatar:
+        res = cloudinary.uploader.upload(avatar)
+        user.avatar = res.get("secure_url")
 
     db.session.add(user)
     try:
@@ -41,8 +44,7 @@ def auth_user(email: str, password: str):
     if not password:
         raise ValueError("Incorrect email or password")
 
-
-    user = User.query.filter( User.email == email).first()
+    user = User.query.filter(User.email == email).first()
     if not user or not user.verify_password(password):
         raise ValueError("Incorrect email or password")
 
@@ -72,14 +74,10 @@ def _validate_password(password):
     if len(password) > 128:
         raise ValueError("Password must be less than or equal 128 characters")
 
-    if not re.search(r"[A-Z]", password):
-        raise ValueError("Password must contain at least one uppercase letter")
-
-    if not re.search(r"[a-z]", password):
-        raise ValueError("Password must contain at least one lowercase letter")
-
-    if not re.search(r"[0-9]", password):
-        raise ValueError("Password must contain at least one digit")
+    if ((not re.search(r"[A-Z]", password)
+         or not re.search(r"[a-z]", password))
+            or not re.search(r"[0-9]", password)):
+        raise ValueError("Password must contain at least one uppercase letter, one lowercase letter and one digit")
 
 
 def _validate_name(name):
@@ -92,4 +90,3 @@ def _validate_name(name):
 
     if len_name > 50:
         raise ValueError("Name must be less than or equal 50")
-

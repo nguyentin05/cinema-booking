@@ -40,8 +40,12 @@ def register():
         err_msg = "Passwords do not match"
         return render_template('auth/register.html', err_msg=err_msg)
 
+    name = data.get('name').strip()
+    email = data.get('email').strip()
+    avatar = request.files.get('avatar')
+
     try:
-        user = add_user(name=data.get('name'), email=data.get('email'), password=password)
+        user = add_user(name=name, email=email, password=password, avatar=avatar)
         return redirect(url_for('auth.login'))
 
     except (ValueError, InternalServerError) as ex:
