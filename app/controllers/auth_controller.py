@@ -25,7 +25,7 @@ def login():
         return redirect(next if next else '/')
 
     except Exception as ex:
-        return render_template('auth/login.html', err_msg=str(ex))
+        return render_template('auth/login.html', err_msg="Incorrect email or password")
 
 
 @auth.route('/register', methods=['GET', 'POST'])
