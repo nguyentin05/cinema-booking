@@ -1,0 +1,36 @@
+services:
+  web:
+    build:
+      context: .
+    restart: always
+    container_name: flask_app
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - FLASK_HOST=0.0.0.0
+    ports:
+      - '5000:5000'
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+
+  mysql-db:
+    image: mysql:8.0
+    container_name: cinema_mysql
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - '3309:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:
