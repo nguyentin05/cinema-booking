@@ -1,7 +1,8 @@
 from app import create_app, db
 from app.models import User, UserRole
-app = create_app()
+from config import ProductionConfig
 
+app = create_app(ProductionConfig)
 
 if __name__ == '__main__':
     with app.app_context():
@@ -15,6 +16,5 @@ if __name__ == '__main__':
         admin.password = '123456'
 
         db.session.add(admin)
-
 
         db.session.commit()

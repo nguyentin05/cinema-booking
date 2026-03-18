@@ -12,19 +12,14 @@ login_manager = LoginManager()
 load_dotenv('.env')
 
 
-def create_app():
+def create_app(cfg):
     app = Flask(__name__)
 
-    app.secret_key = os.getenv("SECRET_KEY")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI")
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = True
-    app.config["PAGE_SIZE"] = 8
+    app.config.from_object(cfg)
 
+    cfg.init_app(app)
     db.init_app(app=app)
     login_manager.init_app(app=app)
-    cloudinary.config(cloud_name=os.getenv('CLOUD_NAME'),
-                      api_key=os.getenv('CLOUD_API_KEY'),
-                      api_secret=os.getenv('CLOUD_API_SECRET'))
 
     from app.controllers.main_controller import main
     app.register_blueprint(main)
