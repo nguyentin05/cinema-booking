@@ -1,9 +1,8 @@
 import pytest
 
 from app import db
-from app.daos import auth_user
+from app.daos import user_dao
 from app.models import User
-from app.test import test_app
 
 
 @pytest.fixture
@@ -21,7 +20,7 @@ def user_data(test_app):
 
 
 def test_success(user_data):
-    u = auth_user(
+    u = user_dao.auth_user(
         email='ximofam@gmail.com',
         password='123456Abc'
     )
@@ -39,7 +38,7 @@ def test_wrong_email(user_data, email):
     password = '123456Abc'
 
     with pytest.raises(ValueError):
-        auth_user(email=email, password=password)
+        user_dao.auth_user(email=email, password=password)
 
 
 @pytest.mark.parametrize("password", [
@@ -51,4 +50,4 @@ def test_wrong_password(user_data, password):
     email = 'ximofam@gmail.com'
 
     with pytest.raises(ValueError):
-        auth_user(email=email, password=password)
+        user_dao.auth_user(email=email, password=password)

@@ -1,7 +1,6 @@
 import pytest
 
-from app.daos import add_user
-from app.test import test_app
+from app.daos import user_dao
 
 
 @pytest.fixture
@@ -17,7 +16,7 @@ def valid_user_data(test_app):
 
 
 def test_add_user_success(valid_user_data):
-    user = add_user(**valid_user_data)
+    user = user_dao.add_user(**valid_user_data)
 
     assert user.id is not None
     assert user.email == valid_user_data['email']
@@ -25,10 +24,10 @@ def test_add_user_success(valid_user_data):
 
 
 def test_add_user_email_exists(valid_user_data, test_app):
-    add_user(**valid_user_data)
+    user_dao.add_user(**valid_user_data)
 
     with pytest.raises(ValueError, match="Email already exists"):
-        add_user(**valid_user_data)
+        user_dao.add_user(**valid_user_data)
 
 
 @pytest.mark.parametrize("email", [
@@ -42,7 +41,7 @@ def test_add_user_invalid_email(valid_user_data, email):
     valid_user_data["email"] = email
 
     with pytest.raises(ValueError):
-        add_user(**valid_user_data)
+        user_dao.add_user(**valid_user_data)
 
 
 @pytest.mark.parametrize("password", [
@@ -58,7 +57,7 @@ def test_add_user_invalid_password(valid_user_data, password):
     valid_user_data["password"] = password
 
     with pytest.raises(ValueError):
-        add_user(**valid_user_data)
+        user_dao.add_user(**valid_user_data)
 
 
 @pytest.mark.parametrize("name", [
@@ -70,4 +69,4 @@ def test_add_user_invalid_name(valid_user_data, name):
     valid_user_data["name"] = name
 
     with pytest.raises(ValueError):
-        add_user(**valid_user_data)
+        user_dao.add_user(**valid_user_data)
