@@ -40,9 +40,7 @@ def add_user(email, password, name, avatar):
 
 def auth_user(email: str, password: str):
     _validate_email(email)
-
-    if not password:
-        raise ValueError("Incorrect email or password")
+    _validate_password(password)
 
     user = User.query.filter(User.email == email).first()
     if not user or not user.verify_password(password):
