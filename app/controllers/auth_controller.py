@@ -1,9 +1,9 @@
 from flask import Blueprint, render_template, request, redirect, url_for
-from flask_login import login_user, current_user, logout_user
+from flask_login import login_user, logout_user
 from werkzeug.exceptions import InternalServerError
 
 from app import login_manager
-from app.daos import auth_user, add_user, get_user_by_id
+from app.daos import user_dao
 
 auth = Blueprint('auth', __name__)
 
@@ -18,13 +18,13 @@ def login():
     password = data.get('password', "")
 
     try:
-        user = auth_user(email.strip(), password.strip())
+        user = user_dao.auth_user(email.strip(), password.strip())
         login_user(user)
 
-        next = request.args.get('next')
-        return redirect(next if next else '/')
+        next_url = request.args.get('next')
+        return redirect(next_url if next_url else '/')
 
-    except Exception as ex:
+    except Exception:
         return render_template('auth/login.html', err_msg="Incorrect email or password")
 
 
@@ -45,7 +45,7 @@ def register():
     avatar = request.files.get('avatar')
 
     try:
-        user = add_user(name=name, email=email, password=password, avatar=avatar)
+        user_dao.add_user(name=name, email=email, password=password, avatar=avatar)
         return redirect(url_for('auth.login'))
 
     except (ValueError, InternalServerError) as ex:
@@ -60,4 +60,4 @@ def logout():
 
 @login_manager.user_loader
 def load_user(id):
-    return get_user_by_id(id)
+    return user_dao.get_user_by_id(id)

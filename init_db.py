@@ -12,8 +12,8 @@ if __name__ == '__main__':
         # Add admin user
         admin = User(email="admin@gmail.com",
                      name="ximofam",
+                     password='Admin123',
                      role=UserRole.ADMIN)
-        admin.password = '123456'
 
         db.session.add(admin)
 
