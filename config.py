@@ -24,9 +24,9 @@ class DevConfig(Config):
         Config.init_app(app)
 
         cloudinary.config(
-            cloud_name=os.getenv('datah8lgd'),
-            api_key=os.getenv('899758535566942'),
-            api_secret=os.getenv('nZAFBUzO70k6dkRT5FjUTY3nGII')
+            cloud_name=os.getenv("CLOUD_NAME", 'datah8lgd'),
+            api_key=os.getenv("CLOUD_API_KEY", '899758535566942'),
+            api_secret=os.getenv("CLOUD_API_SECRET", 'nZAFBUzO70k6dkRT5FjUTY3nGII')
         )
 
 
@@ -41,9 +41,9 @@ class ProductionConfig(Config):
         Config.init_app(app)
 
         cloudinary.config(
-            cloud_name=os.getenv('datah8lgd'),
-            api_key=os.getenv('899758535566942'),
-            api_secret=os.getenv('nZAFBUzO70k6dkRT5FjUTY3nGII')
+            cloud_name=os.getenv("CLOUD_NAME", 'datah8lgd'),
+            api_key=os.getenv("CLOUD_API_KEY", '899758535566942'),
+            api_secret=os.getenv("CLOUD_API_SECRET", 'nZAFBUzO70k6dkRT5FjUTY3nGII')
         )
 
 
