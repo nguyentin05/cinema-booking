@@ -1,5 +1,7 @@
 from .user import User, UserRole
+from .movie import Movie, Genre
 
 __all__ = [
-    'User', 'UserRole'
+    'User', 'UserRole',
+    'Movie', 'Genre'
 ]
