@@ -18,7 +18,7 @@ def get_movies(filters: dict = None):
 
     kw = filters.get('kw')
     if kw:
-        query = query.filter(Movie.title.contains(kw))
+        query = query.filter(Movie.title.ilike(f"%{kw}%"))
 
     status = filters.get('status')
     if status:
@@ -29,9 +29,9 @@ def get_movies(filters: dict = None):
         elif status == 'coming_soon':
             query = query.filter(Movie.release_date > today)
 
-    query = query.filter(Movie.is_active == True)
+    query = query.filter(Movie.is_active.is_(True))
 
-    page = int(filters.get('page')) if filters.get('page') else 1
+    page = int(filters.get('page', 1))
     page_size = current_app.config.get('PAGE_SIZE')
 
     paginate = query.paginate(page=page, per_page=page_size)
