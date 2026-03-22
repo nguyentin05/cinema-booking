@@ -6,7 +6,7 @@ from app.models import Genre
 
 
 @pytest.fixture
-def genres_data(test_app):
+def sample_data(test_app):
     genres = [
         {"name": "Action"},
         {"name": "Comedy"},
@@ -32,8 +32,8 @@ def genres_data(test_app):
     return res
 
 
-def test_success(genres_data):
+def test_success(sample_data):
     genres = genre_dao.get_genres()
 
-    assert len(genres) == len(genres_data)
-    assert all(genres[i].id == genres_data[i].id for i in range(len(genres_data)))
+    assert len(genres) == len(sample_data)
+    assert all(g.id == sample_data[i].id for i, g in enumerate(genres))
