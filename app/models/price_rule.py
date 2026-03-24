@@ -1,6 +1,6 @@
 from enum import IntEnum
 
-from sqlalchemy import Column, Enum, Integer, ForeignKey, Float
+from sqlalchemy import Column, Integer, ForeignKey, Float
 
 from app.models.base_model import BaseModel
 
