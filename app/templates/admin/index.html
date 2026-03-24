@@ -1,0 +1,24 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+
+{% if current_user.is_authenticated %}
+<h1 class="text-info mt-1">CHÀO MỪNG ĐẾN TRANG QUẢN TRỊ</h1>
+<h2 class="text-success">Chào {{ current_user.name }}!</h2>
+{% else %}
+<h2 class="text-success text-center">ĐĂNG NHẬP QUẢN TRỊ</h2>
+
+<form method="post" action="{{ url_for('auth.login', next='/admin') }}">
+    <div class="form-group">
+        <label for="name">Email: </label>
+        <input type="text" class="form-control" placeholder="Enter email..." id="name" name="email" required/>
+    </div>
+    <div class="form-group">
+        <label for="pwd">Password:</label>
+        <input type="password" class="form-control" placeholder="Enter password..." id="pwd" name="password" required/>
+    </div>
+    <button type="submit" class="btn btn-primary">Login</button>
+</form>
+{% endif %}
+
+{% endblock %}

@@ -25,13 +25,19 @@ def create_app(cfg):
             "genres": genre_dao.get_genres()
         }
 
+    from app.controllers.api_movie_controller import api_movie
+    app.register_blueprint(api_movie, url_prefix='/api/movies')
+
+    from app.controllers.api_showtime_controller import api_showtime
+    app.register_blueprint(api_showtime, url_prefix='/api/showtimes')
+
     from app.controllers.main_controller import main
     app.register_blueprint(main)
 
     from app.controllers.auth_controller import auth
     app.register_blueprint(auth, url_prefix='/auth')
 
-    from app.controllers.api_movie_controller import api_movie
-    app.register_blueprint(api_movie, url_prefix='/api/movies')
+    from app.controllers.movie_controller import movie_page
+    app.register_blueprint(movie_page, url_prefix='/movie')
 
     return app

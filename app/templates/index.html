@@ -1,23 +1,23 @@
 {% extends 'layout/base.html' %}
 
-{% block title %}Trang chủ{% endblock %}
+{% block title %}Home{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-center mb-4">
     <div class="nav nav-pills">
         <a class="nav-link {{ 'active' if not request.args.get('status') else '' }}"
            href="{{ url_for(request.endpoint, **dict(request.args, status='', page=1)) }}">
-            Tất cả
+            All
         </a>
 
         <a class="nav-link {{ 'active' if request.args.get('status') == 'is_showing' else '' }}"
            href="{{ url_for(request.endpoint, **dict(request.args, status='is_showing', page=1)) }}">
-            Đang chiếu
+            Is showing
         </a>
 
         <a class="nav-link {{ 'active' if request.args.get('status') == 'coming_soon' else '' }}"
            href="{{ url_for(request.endpoint, **dict(request.args, status='coming_soon', page=1)) }}">
-            Sắp chiếu
+            Coming soon
         </a>
     </div>
 </div>
@@ -38,7 +38,7 @@
                 </p>
 
                 <div class="mt-auto">
-                    <a href="#" class="btn btn-primary w-100">Đặt vé</a>
+                    <a href="{{ url_for('movie_page.index', movie_id=m.id) }}" class="btn btn-primary w-100">Booking</a>
                 </div>
             </div>
         </div>
