@@ -1,6 +1,7 @@
 from enum import IntEnum
 
-from sqlalchemy import Column, Integer, ForeignKey, Float
+from sqlalchemy import Column, Integer, ForeignKey, Float, Enum
+from sqlalchemy.orm import relationship
 
 from app.models.base_model import BaseModel
 
@@ -16,8 +17,9 @@ class DayOfWeek(IntEnum):
 
 
 class PriceRule(BaseModel):
-    day_of_week = Column(Integer, nullable=True)
+    day_of_week = Column(Enum(DayOfWeek), nullable=True)
     seat_type_id = Column(Integer, ForeignKey("seat_types.id"), nullable=True)
+    seat_type = relationship("SeatType")
 
     priority = Column(Integer, default=0)
     price = Column(Float, nullable=False)

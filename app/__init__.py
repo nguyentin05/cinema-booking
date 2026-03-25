@@ -40,4 +40,7 @@ def create_app(cfg):
     from app.controllers.movie_controller import movie_page
     app.register_blueprint(movie_page, url_prefix='/movie')
 
+    from app.controllers.booking_controller import booking_page
+    app.register_blueprint(booking_page, url_prefix='/booking')
+
     return app

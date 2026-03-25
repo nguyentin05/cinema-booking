@@ -8,6 +8,9 @@ class SeatType(BaseModel):
     name = Column(String(50), nullable=False, unique=True)
     seats = relationship("Seat", backref="seat_type", lazy=True)
 
+    def __str__(self):
+        return self.name
+
 
 class Seat(BaseModel):
     seat_row = Column(String(10), nullable=False)

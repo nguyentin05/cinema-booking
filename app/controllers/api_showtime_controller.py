@@ -32,8 +32,8 @@ def get_showtimes():
     return jsonify([
         {
             "id": st.id,
-            "start_at": st.start_at.strftime("%H:%M"),
-            "end_at": st.end_at.strftime("%H:%M")
+            "start_at": st.start_at.isoformat(),
+            "end_at": st.end_at.isoformat()
         }
         for st in showtimes
     ]), 200

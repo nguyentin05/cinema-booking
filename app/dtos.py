@@ -8,3 +8,4 @@ class SeatDTO:
     number: int
     type: str
     status: str
+    price: float

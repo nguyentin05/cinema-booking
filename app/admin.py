@@ -8,7 +8,7 @@ from wtforms import FileField
 
 from app import db
 from app.daos import seat_dao, showtime_dao
-from app.models import Movie, Room, Seat, Showtime
+from app.models import Movie, Room, Seat, Showtime, PriceRule, SeatType
 
 
 class AdminView(ModelView):
@@ -101,6 +101,14 @@ class ShowtimeView(AdminView):
                            seating_matrix=seating_matrix)
 
 
+class PriceRuleView(AdminView):
+    column_list = ['id', 'day_of_week', 'seat_type', 'priority', 'price']
+
+
+class SeatTypeView(AdminView):
+    pass
+
+
 class LogoutView(BaseView):
     @expose('/')
     def index(self):
@@ -115,6 +123,8 @@ admin = Admin(name="Movie Booking")
 admin.add_view(MovieView(Movie, db.session))
 admin.add_view(RoomView(Room, db.session))
 admin.add_view(ShowtimeView(Showtime, db.session))
+admin.add_view(PriceRuleView(PriceRule, db.session))
+admin.add_view(SeatTypeView(SeatType, db.session))
 admin.add_view(LogoutView(name='Logout'))
 
 

@@ -11,13 +11,13 @@
 
     {% block css %}{% endblock %}
 </head>
-<body>
+<body class="d-flex flex-column min-vh-100">
 
 {% block header %}
 {% include 'layout/header.html' %}
 {% endblock %}
 
-<section class="container">
+<section class="container flex-grow-1 my-4">
     {% block content required %}
     {% endblock %}
 </section>

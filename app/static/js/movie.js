@@ -62,11 +62,14 @@ async function renderShowtimes(movie_id, date) {
 
     let htmlContent = '';
     showtimes.forEach(st => {
+        const start_at = new Date(st.start_at)
+        const start_at_str = start_at.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
         htmlContent += `
             <div class="text-center">
-                <button class="btn showtime-btn" showtime-id="${st.id}">
-                    ${st.start_at}
-                </button>
+                <a href="/booking/${st.id}" class="btn showtime-btn">
+                    ${start_at_str}
+                </a>
             </div>
         `;
     });

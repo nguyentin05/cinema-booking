@@ -1,0 +1,19 @@
+.seat {
+    width: 45px;
+    height: 45px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    transition: transform 0.2s ease;
+}
+
+.seat:hover {
+    transform: scale(1.1);
+}
+
+.available-seat {
+    cursor: pointer;
+}
+
+.unavailable-seat {
+    cursor: not-allowed;
+}
