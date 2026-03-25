@@ -1,7 +1,4 @@
-from datetime import datetime
-
-from sqlalchemy import desc, or_
-from sqlalchemy.orm import joinedload
+from sqlalchemy import desc
 
 from app import db
 from app.dtos import SeatDTO
