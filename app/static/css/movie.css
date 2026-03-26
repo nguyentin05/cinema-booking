@@ -1,0 +1,67 @@
+/* Tùy chỉnh màu sắc giống BHD */
+.text-bhd-green {
+    color: #61b146 !important; /* Màu xanh lá đặc trưng */
+}
+.btn-bhd-outline {
+    color: #61b146;
+    border: 1px solid #61b146;
+    background-color: transparent;
+    font-weight: 500;
+}
+.btn-bhd-outline:hover {
+    background-color: #61b146;
+    color: white;
+}
+.showtime-btn {
+    background-color: #495469; /* Màu xanh đen xám của nút giờ chiếu */
+    color: white;
+    border: none;
+    width: 120px;
+    font-size: 1.1rem;
+    padding: 10px 0;
+    border-radius: 6px;
+    font-weight: 500;
+}
+.showtime-btn:hover {
+    background-color: #3b4455;
+    color: white;
+}
+
+
+.bhd-card {
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background-color: #fff;
+}
+.tag-black { background-color: #1a1a1a; font-size: 0.65rem; }
+.tag-green { background-color: #4CAF50; font-size: 0.65rem; }
+
+
+.date-scroll {
+    overflow-x: auto;
+    white-space: nowrap;
+    scrollbar-width: none;
+}
+.date-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.date-btn {
+    min-width: 85px;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    color: #555;
+    background: #fff;
+    transition: all 0.2s;
+}
+.date-btn:hover {
+    border-color: #61b146;
+    color: #61b146;
+}
+
+.date-btn.active {
+    background-color: #61b146;
+    border-color: #61b146;
+    color: white;
+    box-shadow: 0 4px 8px rgba(97, 177, 70, 0.3);
+}

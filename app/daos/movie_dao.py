@@ -1,8 +1,13 @@
 from datetime import date
 
 from flask import current_app
+from sqlalchemy.orm import joinedload
 
 from app.models import Movie, Genre
+
+
+def get_movie(id):
+    return Movie.query.options(joinedload(Movie.genres)).get(id)
 
 
 def get_movies(filters: dict = None):

@@ -6,7 +6,7 @@ api_movie = Blueprint('api_movie', __name__)
 
 
 @api_movie.route('/')
-def get_products():
+def get_movies():
     filters = request.args
     movies, paginate = movie_dao.get_movies(filters)
 

@@ -7,15 +7,18 @@ from app import db
 from app.models.base_model import BaseModel
 
 movie_genre = db.Table(
-    'movie_genre',
-    db.Column('movie_id', db.Integer, db.ForeignKey('movie.id'), primary_key=True),
-    db.Column('genre_id', db.Integer, db.ForeignKey('genre.id'), primary_key=True)
+    'movie_genres',
+    db.Column('movie_id', db.Integer, db.ForeignKey('movies.id'), primary_key=True),
+    db.Column('genre_id', db.Integer, db.ForeignKey('genres.id'), primary_key=True)
 )
 
 
 class Genre(BaseModel):
     name = Column(String(50), nullable=False, unique=True)
     movies = relationship('Movie', secondary=movie_genre, back_populates='genres')
+
+    def __str__(self):
+        return self.name
 
 
 class Movie(BaseModel):
@@ -27,6 +30,7 @@ class Movie(BaseModel):
     release_date = Column(Date, default=date.today)
     is_active = Column(Boolean, default=True)
     genres = relationship("Genre", secondary=movie_genre, back_populates='movies')
+    showtimes = relationship("Showtime", backref="movie", lazy=True)
 
     @property
     def status(self):
@@ -34,3 +38,6 @@ class Movie(BaseModel):
             return 'is_showing'
 
         return 'coming_soon'
+
+    def __str__(self):
+        return self.title

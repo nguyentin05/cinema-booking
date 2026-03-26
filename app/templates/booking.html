@@ -1,0 +1,124 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Booking{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="mb-4 text-center">
+        <h3>Room: <span class="text-primary">{{ room.name }}</span></h3>
+        <h5 class="text-muted">Movie: {{ showtime.movie.title }} | Time: {{ showtime.start_at.strftime('%H:%M
+            %d/%m/%Y') }}</h5>
+        <a href="{{ url_for('movie_page.index', movie_id=showtime.movie.id) }}" class="btn btn-secondary">Back</a>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="screen-container text-center mb-5 mt-4">
+                <div class="bg-dark text-white mx-auto shadow-sm"
+                     style="width: 80%; padding: 10px; border-radius: 50% / 15px 15px 0 0; letter-spacing: 5px;">SCREEN
+                </div>
+            </div>
+
+            <div class="seating-wrapper text-center">
+                <table class="table table-borderless mx-auto" style="width: auto;">
+                    <tbody>
+                    {% for row_name, seats_in_row in seating_matrix.items() %}
+                    <tr>
+                        <td class="align-middle fw-bold text-muted px-3">{{ row_name }}</td>
+
+                        <td>
+                            <div class="d-flex justify-content-center gap-2">
+                                {% for seat in seats_in_row %}
+
+                                {% if seat.status == "PAID" %}
+                                {% set bg_color = 'bg-secondary text-white opacity-50' %}
+                                {% set cursor = 'not-allowed' %}
+                                {% set tooltip = 'Đã bán' %}
+
+                                {% elif seat.status == "HOLDING" %}
+                                {% set bg_color = 'bg-warning text-dark' %}
+                                {% set cursor = 'wait' %}
+                                {% set tooltip = 'Đang giữ chỗ...' %}
+
+                                {% else %}
+                                {% set cursor = 'pointer' %}
+                                {% set tooltip = 'Ghế trống - ' + seat.type %}
+
+                                {% if seat.type == 'VIP' %}
+                                {% set bg_color = 'bg-info text-white' %}
+                                {% elif seat.type == 'Couple' %}
+                                {% set bg_color = 'bg-danger text-white' %}
+                                {% else %}
+                                {% set bg_color = 'bg-success text-white' %}
+                                {% endif %}
+
+                                {% endif %}
+
+                                <div class="seat {{ bg_color }} {% if seat.status not in ['PAID', 'HOLDING'] %}available-seat{% endif %} rounded d-flex align-items-center justify-content-center shadow-sm"
+                                         {% if seat.status not in ['PAID', 'HOLDING'] %}
+                                            data-seat-id="{{ seat.id }}"
+                                            data-seat-name="{{ row_name }}{{ seat.number }}"
+                                            data-seat-type="{{ seat.type }}"
+                                            data-seat-price="{{ seat.price }}"
+                                            data-original-bg="{{ bg_color }}"
+                                         {% endif %}
+                                         onmouseover="this.style.transform='scale(1.1)'"
+                                         onmouseout="this.style.transform='scale(1)'">
+                                    {{ seat.number }}
+                                </div>
+
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="align-middle fw-bold text-muted px-3">{{ row_name }}</td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="d-flex justify-content-center gap-4 mt-5 p-3 bg-light rounded shadow-sm border">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-success rounded" style="width: 20px; height: 20px;"></div>
+                    Normal
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-info rounded" style="width: 20px; height: 20px;"></div>
+                    VIP
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-danger rounded" style="width: 20px; height: 20px;"></div>
+                    Couple
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-warning rounded" style="width: 20px; height: 20px;"></div>
+                    Holding
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-secondary opacity-50 rounded" style="width: 20px; height: 20px;"></div>
+                    Paid
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary opacity-50 rounded" style="width: 20px; height: 20px;"></div>
+                    Select
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 mt-5 mt-lg-0">
+            <div class="card shadow-sm border-0 booking-sidebar">
+                <div class="card-body p-4" id="selected_seat">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/booking.js') }}"></script>
+{% endblock %}

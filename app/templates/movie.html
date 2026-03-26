@@ -1,0 +1,66 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Movie{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/movie.css') }}">
+{% endblock %}
+
+
+{% block content %}
+<div class="container mt-4" style="font-family: 'Be Vietnam Pro', sans-serif;">
+
+    <div class="bhd-card p-3 p-md-4 mb-4 shadow-sm">
+        <div class="row">
+            <div class="col-4 col-md-3 col-lg-2">
+                <img src="{{ movie.poster_url }}" class="img-fluid rounded shadow-sm" alt="Poster">
+            </div>
+
+            <div class="col-8 col-md-9 col-lg-10">
+                <h3 class="text-bhd-green fw-bold text-uppercase mb-3">{{ movie.title }}</h3>
+                <p class="mb-3">{{ movie.description }}</p>
+
+                <p class="mb-1"><strong>Genre:</strong>
+                    <span class="text-bhd-green">
+                    {% for g in movie.genres %}
+                        {{ g.name }}{% if not loop.last %}, {% endif %}
+                    {% endfor %}
+                    </span>
+                </p>
+                <p class="mb-3">
+                    <strong>Release:</strong> {{ movie.release_date.strftime('%d/%m/%Y') }} |
+                    <strong>Duration:</strong> {{ movie.duration_minutes }} minutes
+                </p>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 mb-4">
+            <h5 class="fw-bold mb-3 text-center">Lịch chiếu</h5>
+
+            <div class="d-flex date-scroll gap-2 pb-2 justify-content-center" id="date-container">
+            </div>
+
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+            </div>
+        </div>
+
+        <div class="col-lg-8 mb-4">
+            <div class="bhd-card p-3 p-md-4 mb-3 shadow-sm">
+                <div class="d-flex flex-wrap gap-3" id="showtime-container">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/movie.js') }}"></script>
+{% endblock %}

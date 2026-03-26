@@ -1,0 +1,71 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Sơ đồ ghế: <span class="text-primary">{{ room.name }}</span></h3>
+        <a href="{{ get_url('.index_view') }}" class="btn btn-secondary">Back</a>
+    </div>
+
+    <div class="screen-container text-center mb-5 mt-4">
+        <div class="bg-dark text-white mx-auto shadow-sm"
+             style="width: 80%; padding: 10px; border-radius: 50% / 15px 15px 0 0; letter-spacing: 5px; font-weight: bold;">
+            MÀN HÌNH CHÍNH
+        </div>
+    </div>
+
+    <div class="seating-wrapper text-center" style="overflow-x: auto;">
+        <table class="table table-borderless mx-auto" style="width: auto;">
+            <tbody>
+            {% for row_name, seats_in_row in seating_matrix.items() %}
+            <tr>
+                <td class="align-middle fw-bold text-muted px-3">{{ row_name }}</td>
+
+                <td>
+                    <div class="d-flex justify-content-center gap-2">
+                        {% for seat in seats_in_row %}
+
+                        {% set bg_color = 'bg-secondary' %}
+                        {% if seat.seat_type.name == 'VIP' %}
+                        {% set bg_color = 'bg-info text-white' %}
+                        {% elif seat.seat_type.name == 'Couple' %}
+                        {% set bg_color = 'bg-danger text-white' %}
+                        {% else %}
+                        {% set bg_color = 'bg-success text-white' %}
+                        {% endif %}
+
+                        <div class="seat {{ bg_color }} rounded d-flex align-items-center justify-content-center shadow-sm"
+                             style="width: 45px; height: 45px; cursor: pointer; font-size: 0.9rem; font-weight: bold; transition: transform 0.2s;"
+                             title="Ghế {{ row_name }}{{ seat.seat_number }} - {{ seat.seat_type.name }}"
+                             onmouseover="this.style.transform='scale(1.1)'"
+                             onmouseout="this.style.transform='scale(1)'">
+                            {{ seat.seat_number }}
+                        </div>
+
+                        {% endfor %}
+                    </div>
+                </td>
+
+                <td class="align-middle fw-bold text-muted px-3">{{ row_name }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="d-flex justify-content-center gap-4 mt-5 p-3 bg-light rounded shadow-sm border">
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-info rounded" style="width: 25px; height: 25px;"></div>
+            Normal
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-warning rounded" style="width: 25px; height: 25px;"></div>
+            VIP
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <div class="bg-danger rounded" style="width: 25px; height: 25px;"></div>
+            Couple
+        </div>
+    </div>
+</div>
+{% endblock %}
