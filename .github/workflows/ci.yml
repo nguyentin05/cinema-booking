@@ -51,10 +51,29 @@ jobs:
       - name: Syntax check
         run: python -m compileall app
 
-      - name: Run tests
+      - name: Run tests with coverage
         run: |
           export PYTHONPATH=.
-          pytest -q app/test/
+          pytest -q app/test/ \
+            --cov=app \
+            --cov-report=xml:coverage.xml \
+            --junitxml=test-results.xml
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage.xml
+          retention-days: 1
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results.xml
+          retention-days: 1
 
   ci-summary:
     name: CI Summary
@@ -62,11 +81,47 @@ jobs:
     needs: [ lint, test ]
     if: always()
     steps:
-      - name: Summary
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: false
+
+      - name: Generate CI Summary
         run: |
           echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          
           echo "| Stage | Result |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Lint | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Test | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Lint  | ${{ needs.lint.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Test  | ${{ needs.test.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          echo "## Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "| Coverage | Total | Pass | Fail | Skip |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|------|------|------|" >> $GITHUB_STEP_SUMMARY
+          
+          COV="-"
+          TOTAL=0; PASS=0; FAIL=0; SKIP=0
+          
+          COV_FILE="artifacts/coverage-report/coverage.xml"
+          if [ -f "$COV_FILE" ]; then
+            LINE_RATE=$(grep -m 1 '<coverage' "$COV_FILE" | grep -o 'line-rate="[0-9.]*"' | cut -d'"' -f2)
+            if [ -n "$LINE_RATE" ]; then
+              COV=$(awk "BEGIN {printf \"%.0f%%\", $LINE_RATE * 100}")
+            fi
+          fi
+          
+          TEST_FILE="artifacts/test-results/test-results.xml"
+          if [ -f "$TEST_FILE" ]; then
+            TOTAL=$(grep -m 1 '<testsuite ' "$TEST_FILE" | grep -o 'tests="[0-9]*"' | cut -d'"' -f2)
+            FAIL_E=$(grep -m 1 '<testsuite ' "$TEST_FILE" | grep -o 'errors="[0-9]*"' | cut -d'"' -f2)
+            FAIL_F=$(grep -m 1 '<testsuite ' "$TEST_FILE" | grep -o 'failures="[0-9]*"' | cut -d'"' -f2)
+            SKIP=$(grep -m 1 '<testsuite ' "$TEST_FILE" | grep -o 'skipped="[0-9]*"' | cut -d'"' -f2)
+            TOTAL=${TOTAL:-0}; FAIL_E=${FAIL_E:-0}; FAIL_F=${FAIL_F:-0}; SKIP=${SKIP:-0}
+            FAIL=$((FAIL_E + FAIL_F))
+            PASS=$((TOTAL - FAIL - SKIP))
+          fi
+          
+          echo "| **$COV** | $TOTAL | $PASS | $FAIL | $SKIP |" >> $GITHUB_STEP_SUMMARY
