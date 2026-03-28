@@ -1,0 +1,108 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 3
+    groups:
+      flask-stack:
+        patterns:
+          - "flask"
+          - "werkzeug"
+          - "jinja2"
+          - "markupsafe"
+          - "click"
+          - "itsdangerous"
+          - "blinker"
+        update-types:
+          - "minor"
+          - "patch"
+      flask-extensions:
+        patterns:
+          - "flask-admin"
+          - "flask-login"
+          - "flask-sqlalchemy"
+          - "wtforms"
+        update-types:
+          - "minor"
+          - "patch"
+      database:
+        patterns:
+          - "sqlalchemy"
+          - "pymysql"
+          - "greenlet"
+        update-types:
+          - "minor"
+          - "patch"
+      cloudinary:
+        patterns:
+          - "cloudinary"
+          - "urllib3"
+          - "certifi"
+          - "six"
+        update-types:
+          - "minor"
+          - "patch"
+      testing:
+        patterns:
+          - "pytest"
+          - "pluggy"
+          - "iniconfig"
+          - "packaging"
+          - "pygments"
+          - "ruff"
+        update-types:
+          - "minor"
+          - "patch"
+      utils:
+        patterns:
+          - "python-dotenv"
+          - "colorama"
+          - "typing-extensions"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 1
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Ho_Chi_Minh"
+    open-pull-requests-limit: 2
+    groups:
+      actions:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    labels:
+      - "dependencies"
+    commit-message:
+      prefix: "deps"
+      include: "scope"

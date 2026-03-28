@@ -8,7 +8,6 @@ RUN apt-get update && \
 
 RUN python -m venv /venv
 ENV PATH="/venv/bin:$PATH"
-
 COPY requirements.txt .
 
 RUN --mount=type=cache,target=/root/.cache/pip \
@@ -24,7 +23,6 @@ RUN apt-get update && \
 
 COPY --from=builder /venv /venv
 ENV PATH="/venv/bin:$PATH"
-
 COPY . .
 
 ENV FLASK_DEBUG=1
