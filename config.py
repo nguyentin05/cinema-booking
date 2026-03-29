@@ -6,6 +6,7 @@ import cloudinary
 class Config:
     SECRET_KEY = 'MY_SUPER_SECRET_KEY'
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    MAX_BOOKING_SEAT_EACH_SHOWTIME = int(os.getenv("MAX_BOOKING_SEAT_EACH_SHOWTIME", 8))
 
     @staticmethod
     def init_app(app):
