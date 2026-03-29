@@ -1,5 +1,3 @@
-from sqlalchemy.orm import joinedload
-
 from app import db
 from app.daos import seat_dao
 from app.dtos import SeatDTO
