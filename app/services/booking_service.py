@@ -3,14 +3,14 @@ from datetime import datetime, timedelta
 from flask import current_app
 
 from app import db
-from app.daos import showtime_dao, seat_dao, ticket_dao
-from app.models import Ticket, Booking, TicketStatus, Seat
+from app.daos import seat_dao, ticket_dao
+from app.models import Ticket, Booking, TicketStatus, Seat, Showtime
 
 
 class BookingService:
     @staticmethod
     def booking_seats(user_id, showtime_id, seat_ids):
-        showtime = showtime_dao.get_showtime(showtime_id)
+        showtime = Showtime.query.get(showtime_id)
         if not showtime:
             raise ValueError("This showtime do not exist")
 
