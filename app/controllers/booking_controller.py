@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, render_template
 from flask_login import current_user, login_required
 
-from app.daos import showtime_dao, seat_dao, ticket_dao
+from app.daos import showtime_dao, ticket_dao
 from app.services.seat_service import SeatService
 
 booking_page = Blueprint('booking_page', __name__)

@@ -82,6 +82,6 @@ class BookingService:
 
         try:
             db.session.commit()
-        except Exception as ex:
+        except Exception:
             db.session.rollback()
             raise

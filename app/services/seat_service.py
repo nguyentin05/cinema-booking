@@ -3,7 +3,7 @@ from sqlalchemy.orm import joinedload
 from app import db
 from app.daos import seat_dao
 from app.dtos import SeatDTO
-from app.models import Showtime, Ticket, Booking, TicketStatus, Seat
+from app.models import Showtime, Ticket, Booking, TicketStatus
 
 
 class SeatService:

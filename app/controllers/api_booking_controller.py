@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, current_app
 from flask_login import current_user
-from werkzeug.exceptions import InternalServerError
 
 from app.decorators import api_login_required
 from app.services.booking_service import BookingService
