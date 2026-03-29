@@ -110,6 +110,16 @@
             </div>
         </div>
         <div class="col-lg-4 mt-5 mt-lg-0">
+            {% if already_booked_seats %}
+            <div class="alert alert-info d-flex align-items-center mt-3" role="alert">
+                <i class="bi bi-info-circle me-2"></i>
+                <div>
+                    You have reserved
+                    <span id="already_booked_seats" class="fw-bold">{{ already_booked_seats }}</span>
+                    seats for this showtime.
+                </div>
+            </div>
+            {% endif %}
             <div class="card shadow-sm border-0 booking-sidebar">
                 <div class="card-body p-4" id="selected_seat">
                 </div>

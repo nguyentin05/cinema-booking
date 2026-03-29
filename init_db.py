@@ -2,7 +2,7 @@ import random
 from datetime import datetime, timedelta
 
 from app import create_app, db
-from app.models import User, UserRole, Genre, Movie, SeatType, Room, Seat, Showtime
+from app.models import User, UserRole, Genre, Movie, SeatType, Room, Seat, Showtime, PriceRule
 from config import configs
 
 genres = [
@@ -99,6 +99,15 @@ seat_types = [
     {"name": "Couple"}
 ]
 
+price_rules = [
+    {"priority": 0, "price": 50000},  # Default price
+    {"priority": 1, "day_of_week": "SUNDAY", "price": 70000},  # sunday
+    {"priority": 1, "seat_type_id": 2, "price": 75000},  # VIP seat
+    {"priority": 1, "seat_type_id": 3, "price": 100000},  # Couple seat
+    {"priority": 2, "day_of_week": "SUNDAY", "seat_type_id": 2, "price": 95000},  # Vip seat and sunday
+    {"priority": 2, "day_of_week": "SUNDAY", "seat_type_id": 3, "price": 120000}  # Couple seat and sunday
+]
+
 if __name__ == '__main__':
     app = create_app(configs['dev'])
     with app.app_context():
@@ -132,6 +141,10 @@ if __name__ == '__main__':
         db.session.add_all([SeatType(**st) for st in seat_types])
         db.session.flush()
 
+        # Add price_rules
+        db.session.add_all([PriceRule(**pr) for pr in price_rules])
+        db.session.flush()
+
         # Create 5 room each room have 50 seat
         seat_type_map = {st.name: st for st in SeatType.query.all()}
         rooms_to_create = 5
@@ -163,8 +176,8 @@ if __name__ == '__main__':
                     )
                     db.session.add(seat)
 
+        # Create a movie showtime for the rooms over 7 days
         room_objs = Room.query.all()
-
         now = datetime.now()
         start_schedule = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
         movie_objs = Movie.query.all()
@@ -172,7 +185,7 @@ if __name__ == '__main__':
         for room in room_objs:
             current_time = start_schedule
 
-            for day_offset in range(3):
+            for day_offset in range(7):
                 if day_offset > 0:
                     current_time = (start_schedule + timedelta(days=day_offset)).replace(hour=8, minute=0)
 

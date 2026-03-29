@@ -31,6 +31,9 @@ def create_app(cfg):
     from app.controllers.api_showtime_controller import api_showtime
     app.register_blueprint(api_showtime, url_prefix='/api/showtimes')
 
+    from app.controllers.api_booking_controller import api_booking
+    app.register_blueprint(api_booking, url_prefix='/api/bookings')
+
     from app.controllers.main_controller import main
     app.register_blueprint(main)
 
