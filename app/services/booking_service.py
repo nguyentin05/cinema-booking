@@ -1,11 +1,12 @@
 from datetime import datetime, timedelta
 
 from flask import current_app
-from sqlalchemy import or_, and_
+from sqlalchemy import or_, and_, update
 
 from app import db
 from app.daos import seat_dao, ticket_dao
 from app.models import Ticket, Booking, TicketStatus, Seat, Showtime, BookingStatus
+from app.worker_tasks import cancel_booking_expired
 
 
 class BookingService:
@@ -66,12 +67,13 @@ class BookingService:
             raise ValueError(f"Seat ids: {s_id_not_in_room} not in this room")
 
         # After validate successfully create booking and tickets
+        booking_expiration_time = current_app.config.get("BOOKING_EXPIRATION_TIME")
         seat_price_map = seat_dao.get_price_of_seats(seats, {"start_at": showtime.start_at})
         total_price = sum(price for price in seat_price_map.values())
         booking = Booking(
             user_id=user_id,
             showtime_id=showtime_id,
-            expires_at=now + timedelta(minutes=10),
+            expires_at=now + timedelta(seconds=booking_expiration_time),
             total_price=total_price
         )
         db.session.add(booking)
@@ -89,6 +91,9 @@ class BookingService:
 
         try:
             db.session.commit()
+            cancel_booking_expired.apply_async(
+                args=[booking.id],
+                countdown=booking_expiration_time)
         except Exception:
             db.session.rollback()
             raise

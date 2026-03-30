@@ -7,6 +7,9 @@ class Config:
     SECRET_KEY = 'MY_SUPER_SECRET_KEY'
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     MAX_BOOKING_SEAT_EACH_SHOWTIME = int(os.getenv("MAX_BOOKING_SEAT_EACH_SHOWTIME", 8))
+    BOOKING_EXPIRATION_TIME = int(os.getenv("BOOKING_EXPIRATION_TIME", 600))  # default 10 minutes
+    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
     @staticmethod
     def init_app(app):
