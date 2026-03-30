@@ -4,6 +4,7 @@ from . import movie_dao
 from . import seat_dao
 from . import showtime_dao
 from . import ticket_dao
+from . import booking_dao
 
 __all__ = [
     'user_dao',
@@ -11,5 +12,6 @@ __all__ = [
     'movie_dao',
     'seat_dao',
     'showtime_dao',
-    'ticket_dao'
+    'ticket_dao',
+    'booking_dao'
 ]
