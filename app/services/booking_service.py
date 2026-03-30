@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 
 from flask import current_app
+from sqlalchemy import or_, and_
 
 from app import db
 from app.daos import seat_dao, ticket_dao
-from app.models import Ticket, Booking, TicketStatus, Seat, Showtime
+from app.models import Ticket, Booking, TicketStatus, Seat, Showtime, BookingStatus
 
 
 class BookingService:
@@ -29,7 +30,13 @@ class BookingService:
                 Booking.showtime_id == showtime_id,
                 Ticket.seat_id.in_(seat_ids),
                 Ticket.status != TicketStatus.CANCELLED.name,
-                Booking.expires_at > now
+                or_(
+                    Booking.status == BookingStatus.PAID.name,
+                    and_(
+                        Booking.status == BookingStatus.PENDING.name,
+                        Booking.expires_at > now
+                    )
+                )
             )
             .all()
         )
