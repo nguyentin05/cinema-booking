@@ -21,13 +21,6 @@ def create_app():
     db.init_app(app=app)
     login_manager.init_app(app=app)
 
-    from app.daos import genre_dao
-    @app.context_processor
-    def common_attributes():
-        return {
-            "genres": genre_dao.get_genres()
-        }
-
     from app.controllers.api_movie_controller import api_movie
     app.register_blueprint(api_movie, url_prefix='/api/movies')
 
