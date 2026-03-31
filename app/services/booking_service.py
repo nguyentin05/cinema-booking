@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from flask import current_app
-from sqlalchemy import or_, and_, update
+from sqlalchemy import or_, and_
 
 from app import db
 from app.daos import seat_dao, ticket_dao
