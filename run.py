@@ -2,10 +2,9 @@ import os
 
 from app import create_app
 from app.admin import init_admin
-from config import configs
 
 if __name__ == "__main__":
-    app = create_app(configs['dev'])
+    app = create_app()
     with app.app_context():
         init_admin(app)
         app.run(

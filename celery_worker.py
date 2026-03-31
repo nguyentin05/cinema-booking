@@ -1,7 +1,6 @@
 from celery import Celery
 
 from app import create_app
-from config import configs
 
 
 def make_celery(app):
@@ -23,5 +22,5 @@ def make_celery(app):
     return celery
 
 
-app = create_app(configs['dev'])
+app = create_app()
 celery_app = make_celery(app)
