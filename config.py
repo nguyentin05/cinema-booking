@@ -1,12 +1,14 @@
 import os
-
 import cloudinary
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Config:
-    SECRET_KEY = 'MY_SUPER_SECRET_KEY'
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SECRET_KEY = os.getenv('SECRET_KEY', 'default-secret-key-for-dev')
     MAX_BOOKING_SEAT_EACH_SHOWTIME = int(os.getenv("MAX_BOOKING_SEAT_EACH_SHOWTIME", 8))
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
     BOOKING_EXPIRATION_TIME = int(os.getenv("BOOKING_EXPIRATION_TIME", 600))  # default 10 minutes
     CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
     CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
@@ -15,50 +17,38 @@ class Config:
     def init_app(app):
         app.jinja_env.add_extension('jinja2.ext.do')
 
+        cloudinary.config(
+            cloud_name=os.getenv("CLOUD_NAME"),
+            api_key=os.getenv("CLOUD_API_KEY"),
+            api_secret=os.getenv("CLOUD_API_SECRET")
+        )
 
-class DevConfig(Config):
-    SECRET_KEY = os.getenv('SECRET_KEY', Config.SECRET_KEY)
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+
+class DevelopConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///cinema_dev.db")
     SQLALCHEMY_ECHO = True
     PAGE_SIZE = 4
 
-    @classmethod
-    def init_app(cls, app):
-        Config.init_app(app)
 
-        cloudinary.config(
-            cloud_name=os.getenv("CLOUD_NAME", 'datah8lgd'),
-            api_key=os.getenv("CLOUD_API_KEY", '899758535566942'),
-            api_secret=os.getenv("CLOUD_API_SECRET", 'nZAFBUzO70k6dkRT5FjUTY3nGII')
-        )
+class TestConfig(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    PAGE_SIZE = 4
+
+
+class StagingConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
+    PAGE_SIZE = 8
 
 
 class ProductionConfig(Config):
-    SECRET_KEY = os.getenv('SECRET_KEY', Config.SECRET_KEY)
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
-    SQLALCHEMY_TRACK_MODIFICATIONS = True
+    SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     PAGE_SIZE = 8
-
-    @classmethod
-    def init_app(cls, app):
-        Config.init_app(app)
-
-        cloudinary.config(
-            cloud_name=os.getenv("CLOUD_NAME", 'datah8lgd'),
-            api_key=os.getenv("CLOUD_API_KEY", '899758535566942'),
-            api_secret=os.getenv("CLOUD_API_SECRET", 'nZAFBUzO70k6dkRT5FjUTY3nGII')
-        )
-
-
-class TestConfig(Config):
-    SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
-    TESTING = True
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 
 configs = {
-    'dev': DevConfig,
-    'production': ProductionConfig,
-    'testing': TestConfig
+    'dev': DevelopConfig,
+    'testing': TestConfig,
+    'staging': StagingConfig,
+    'production': ProductionConfig
 }

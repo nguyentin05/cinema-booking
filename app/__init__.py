@@ -1,16 +1,19 @@
 from flask import Flask
-from dotenv import load_dotenv
+import os
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+
+from config import configs
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 
-load_dotenv('.env')
-
-
-def create_app(cfg):
+def create_app():
     app = Flask(__name__)
+
+    env_name = os.environ.get('APP_ENV', 'dev')
+
+    cfg = configs.get(env_name)
 
     app.config.from_object(cfg)
 
