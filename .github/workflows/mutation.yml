@@ -72,21 +72,21 @@ jobs:
           print(f'{killed/effective*100:.1f}' if effective > 0 else '0')
           ")
           
-            echo "| Metric | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "| Loại | Só lượng |" >> $GITHUB_STEP_SUMMARY
             echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
             echo "| 🎉 Killed | $KILLED |" >> $GITHUB_STEP_SUMMARY
             echo "| 🙁 Survived | $SURVIVED |" >> $GITHUB_STEP_SUMMARY
             echo "| ⏰ Timeout | $TIMEOUT |" >> $GITHUB_STEP_SUMMARY
             echo "| 🫥 No Tests | $NO_TESTS |" >> $GITHUB_STEP_SUMMARY
-            echo "| **Total** | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Tổng cộng** | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
           
             PASS=$(python3 -c "print('true' if float('$SCORE') >= $THRESHOLD else 'false')")
           
             if [ "$PASS" = "true" ]; then
-              echo "### PASSED — Mutation Score: **${SCORE}%** (threshold: ${THRESHOLD}%)" >> $GITHUB_STEP_SUMMARY
+              echo "### PASSED — Mutation Score: **${SCORE}%**" >> $GITHUB_STEP_SUMMARY
             else
-              echo "### FAILED — Mutation Score: **${SCORE}%** (threshold: ${THRESHOLD}%)" >> $GITHUB_STEP_SUMMARY
+              echo "### FAILED — Mutation Score: **${SCORE}%** (yêu cầu tối thiểu: >=${THRESHOLD}%)" >> $GITHUB_STEP_SUMMARY
             fi
           
             echo "" >> $GITHUB_STEP_SUMMARY
