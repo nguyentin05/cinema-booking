@@ -33,9 +33,9 @@ def test_add_user_email_exists(valid_user_data, test_app):
 @pytest.mark.parametrize("email", [
     "",
     "invalid-email",
-    "test.com",
-    "test@",
-    "test@gmail."
+    "tests.com",
+    "tests@",
+    "tests@gmail."
 ])
 def test_add_user_invalid_email(valid_user_data, email):
     valid_user_data["email"] = email

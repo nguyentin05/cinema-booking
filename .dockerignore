@@ -1,4 +1,7 @@
 .env
+.env.dev
+.env.staging
+.env.prod
 
 __pycache__/
 *.pyc
@@ -12,3 +15,10 @@ env/
 .gitignore
 
 .DS_Store
+.vscode/
+.idea/
+
+docker/
+docker-compose*.yml
+compose*.yml
+Dockerfile*

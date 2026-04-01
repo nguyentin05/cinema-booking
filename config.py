@@ -4,10 +4,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY', 'default-secret-key-for-dev')
     MAX_BOOKING_SEAT_EACH_SHOWTIME = int(os.getenv("MAX_BOOKING_SEAT_EACH_SHOWTIME", 8))
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    BOOKING_EXPIRATION_TIME = int(os.getenv("BOOKING_EXPIRATION_TIME", 600))  # default 10 minutes
+    CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+    CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND")
 
     @staticmethod
     def init_app(app):

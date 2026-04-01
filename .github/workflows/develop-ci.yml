@@ -4,9 +4,9 @@ on:
     branches: [ "develop" ]
     paths:
       - 'app/**'
-      - 'requirements.txt'
+      - 'requirements/**'
       - '*.py'
-      - 'test/**'
+      - 'tests/**'
   pull_request:
     branches: [ "develop" ]
 
@@ -40,16 +40,17 @@ jobs:
         with:
           python-version: "3.13"
           cache: 'pip'
+          cache-dependency-path: 'requirements/*.txt'
 
       - run: |
           python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements/base.txt -r requirements/dev.txt
 
       - run: python -m compileall app
 
       - run: |
           export PYTHONPATH=.
-          pytest -q test/ --cov=app --cov-report=xml:coverage.xml  --junitxml=test-results.xml
+          pytest -q tests/ --cov=app --cov-report=xml:coverage.xml  --junitxml=test-results.xml
 
       - uses: actions/upload-artifact@v4
         if: always()

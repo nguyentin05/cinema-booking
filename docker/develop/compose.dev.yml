@@ -1,13 +1,13 @@
 services:
   web:
     build:
-      context: .
+      context: ../..
     restart: always
     container_name: flask_app
     volumes:
       - .:/app
     env_file:
-      - .env
+      - ../../.env
     environment:
       - FLASK_HOST=0.0.0.0
     ports:
@@ -21,7 +21,7 @@ services:
     container_name: cinema_mysql
     restart: always
     env_file:
-      - .env
+      - ../../.env
     ports:
       - '3309:3306'
     volumes:
