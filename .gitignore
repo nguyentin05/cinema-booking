@@ -1,3 +1,7 @@
+.mutmut-cache
+mutants/
+mutmut-cicd-stats.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
