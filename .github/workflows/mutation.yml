@@ -53,7 +53,7 @@ jobs:
           echo "## Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
-          STATS_FILE="mutmut-cicd-stats.json"
+          STATS_FILE="mutants/mutmut-cicd-stats.json"
           THRESHOLD=70
           
           if [ -f "$STATS_FILE" ]; then
