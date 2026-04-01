@@ -1,0 +1,102 @@
+name: Mutation Testing
+
+on:
+  push:
+    branches: [ "develop" ]
+    paths:
+      - 'app/**'
+      - 'tests/unit/**'
+  pull_request:
+    branches: [ "develop" ]
+    paths:
+      - 'app/**'
+      - 'tests/unit/**'
+  schedule:
+    - cron: '0 2 * * 1'
+  workflow_dispatch:
+
+jobs:
+  mutation:
+    name: Mutation Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: 'pip'
+          cache-dependency-path: 'requirements/*.txt'
+
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements/base.txt -r requirements/dev.txt
+
+      - run: mutmut run
+        env:
+          PYTHONPATH: .
+
+      - run: mutmut export-cicd-stats
+        if: always()
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mutation-stats
+          path: mutmut-cicd-stats.json
+          retention-days: 2
+
+      - name: Mutation Summary
+        if: always()
+        run: |
+          echo "## Mutation Testing Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          STATS_FILE="mutants/mutmut-cicd-stats.json"
+          THRESHOLD=70
+          
+          if [ -f "$STATS_FILE" ]; then
+            KILLED=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('killed',0))")
+            SURVIVED=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('survived',0))")
+            TIMEOUT=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('timeout',0))")
+            NO_TESTS=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('no_tests',0))")
+            TOTAL=$(python3 -c "import json; d=json.load(open('$STATS_FILE')); print(d.get('total',0))")
+            SCORE=$(python3 -c "
+          import json
+          d = json.load(open('$STATS_FILE'))
+          killed = d.get('killed', 0)
+          total = d.get('total', 0)
+          no_tests = d.get('no_tests', 0)
+          effective = total - no_tests
+          print(f'{killed/effective*100:.1f}' if effective > 0 else '0')
+          ")
+          
+            echo "| Loại | Só lượng |" >> $GITHUB_STEP_SUMMARY
+            echo "|--------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🎉 Killed | $KILLED |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🙁 Survived | $SURVIVED |" >> $GITHUB_STEP_SUMMARY
+            echo "| ⏰ Timeout | $TIMEOUT |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🫥 No Tests | $NO_TESTS |" >> $GITHUB_STEP_SUMMARY
+            echo "| **Tổng cộng** | **$TOTAL** |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+          
+            PASS=$(python3 -c "print('true' if float('$SCORE') >= $THRESHOLD else 'false')")
+          
+            if [ "$PASS" = "true" ]; then
+              echo "### PASSED — Mutation Score: **${SCORE}%**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "### FAILED — Mutation Score: **${SCORE}%** (yêu cầu tối thiểu: >=${THRESHOLD}%)" >> $GITHUB_STEP_SUMMARY
+            fi
+          
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "_Score = killed / (total - no_tests)_" >> $GITHUB_STEP_SUMMARY
+          
+            if [ "$PASS" = "false" ]; then
+              echo "Mutation score ${SCORE}% thấp hơn mức cho phép ${THRESHOLD}%" >&2
+              exit 1
+            fi
+          else
+            echo "### không tìm thấy file thống kê" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
