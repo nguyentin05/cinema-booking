@@ -7,7 +7,6 @@ from app import db
 from app.daos import seat_dao, ticket_dao
 from app.models import Ticket, Booking, Showtime, BookingStatus
 from app.utils import get_redis
-from app.worker_tasks import cancel_booking_expired
 
 
 class BookingService:
@@ -89,10 +88,6 @@ class BookingService:
 
         try:
             db.session.commit()
-            # cancel_booking_expired.apply_async(
-            #     args=[booking.id],
-            #     countdown=booking_expiration_time)
-
             return booking
         except Exception:
             db.session.rollback()
