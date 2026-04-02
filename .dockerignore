@@ -22,3 +22,7 @@ docker/
 docker-compose*.yml
 compose*.yml
 Dockerfile*
+
+.mutmut-cache
+mutants/
+mutmut-cicd-stats.json
