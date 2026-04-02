@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanh toán an toàn - Stripe</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f4f4f9;
+    }
+
+    /* Style cho thanh Header chứa nút Back và Timer */
+    .checkout-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #ffffff;
+      padding: 15px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .btn-back {
+      padding: 8px 15px;
+      background-color: #e0e0e0;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      color: #333;
+      display: flex;
+      align-items: center;
+    }
+
+    .btn-back:hover {
+      background-color: #d0d0d0;
+    }
+
+    .timer-container {
+      font-size: 15px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .timer-text {
+      color: #d9534f; /* Màu đỏ nổi bật */
+      font-size: 18px;
+      margin-left: 5px;
+      letter-spacing: 1px;
+    }
+
+    /* Vùng chứa form Stripe */
+    #checkout {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 0 15px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="checkout-header">
+  <button class="btn-back" onclick="goBack()">⬅ Quay lại</button>
+  <div class="timer-container">
+    Thời gian giữ ghế còn lại: <span id="timer" class="timer-text">--:--</span>
+  </div>
+</div>
+
+<div id="checkout"></div>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const clientSecret = urlParams.get('secret');
+  const stripePublicKey = urlParams.get('pk');
+
+  const expiresAtStr = "{{ booking_expires_at | default('') }}"; // Giả định dùng Jinja
+
+  const stripe = Stripe(stripePublicKey);
+
+  async function initializeCheckout() {
+      if (!clientSecret || !stripePublicKey) {
+          document.getElementById('checkout').innerHTML = "<p style='text-align:center; color:red;'>Thiếu thông tin phiên thanh toán!</p>";
+          return;
+      }
+
+      try {
+          const checkout = await stripe.initEmbeddedCheckout({
+              clientSecret,
+          });
+          checkout.mount('#checkout');
+      } catch (error) {
+          console.error("Lỗi khởi tạo Stripe:", error);
+      }
+  }
+
+  // 3. Hàm chạy đồng hồ đếm ngược
+  function startTimer() {
+      if (!expiresAtStr) return;
+
+      const expiresAt = new Date(expiresAtStr).getTime();
+      const timerDisplay = document.getElementById('timer');
+
+      const countdownInterval = setInterval(function() {
+          const now = new Date().getTime();
+          const distance = expiresAt - now;
+
+          if (distance > 0) {
+              const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+              const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+              timerDisplay.innerHTML =
+                  (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                  (seconds < 10 ? "0" + seconds : seconds);
+          } else {
+              clearInterval(countdownInterval);
+              timerDisplay.innerHTML = "00:00";
+              alert("Rất tiếc, đã hết thời gian giữ ghế. Giao dịch của bạn đã bị huỷ!");
+              window.location.href = "/"; // Hết giờ thì đá về trang chủ
+          }
+      }, 1000);
+  }
+
+  function goBack() {
+      const confirmMsg = "Bạn có muốn quay lại không?\nGhế của bạn vẫn sẽ được giữ cho đến khi hết thời gian đếm ngược.";
+      if (confirm(confirmMsg)) {
+          window.history.back();
+      }
+  }
+
+  initializeCheckout();
+  startTimer();
+</script>
+
+</body>
+</html>

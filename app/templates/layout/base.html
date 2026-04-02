@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %} {% endblock %}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
-            crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <title>{% block title %} {% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+          crossorigin="anonymous"></script>
 
-    {% block css %}{% endblock %}
+  {% block css %}{% endblock %}
 </head>
 <body class="d-flex flex-column min-vh-100">
 
@@ -18,16 +18,219 @@
 {% endblock %}
 
 <section class="container flex-grow-1 my-4">
-    {% block content required %}
-    {% endblock %}
+  {% block content required %}
+  {% endblock %}
 </section>
+
+<div class="modal fade" id="paymentModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+     aria-labelledby="paymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title fw-bold" id="paymentModalLabel"><i class="bi bi-check-circle me-2"></i> Giữ ghế
+          thành công!</h5>
+      </div>
+      <div class="modal-body text-center p-4">
+        <p class="mb-2 text-muted">Vui lòng hoàn tất thanh toán trong thời gian giữ ghế:</p>
+        <h1 id="payment-timer" class="text-danger fw-bold mb-4" style="font-size: 3rem; letter-spacing: 2px;"></h1>
+
+        <h6 class="text-start mb-3 fw-bold">Chọn phương thức thanh toán:</h6>
+
+        <div class="form-check text-start border p-3 rounded mb-3 payment-option d-flex align-items-center"
+             onclick="document.getElementById('methodStripe').checked = true;">
+          <input class="form-check-input m-0" type="radio" name="paymentMethod" id="methodStripe"
+                 value="stripe" checked>
+          <label class="form-check-label w-100 fw-bold ms-3 d-flex align-items-center" for="methodStripe"
+                 style="cursor: pointer;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg"
+                 alt="Stripe" height="24" class="me-3">
+            Thẻ quốc tế (Stripe)
+          </label>
+        </div>
+
+        <div class="form-check text-start border p-3 rounded mb-4 payment-option d-flex align-items-center"
+             onclick="document.getElementById('methodMomo').checked = true;">
+          <input class="form-check-input m-0" type="radio" name="paymentMethod" id="methodMomo" value="momo">
+          <label class="form-check-label w-100 fw-bold ms-3 d-flex align-items-center" for="methodMomo"
+                 style="cursor: pointer;">
+            <img src="https://developers.momo.vn/v3/assets/images/MOMO-Logo-App-6262c3743a290ef02396a24ea2b66c35.png"
+                 alt="MoMo" height="24" class="me-3" style="border-radius: 4px;">
+            Ví điện tử MoMo
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer justify-content-between p-3 bg-light">
+        <button type="button" class="btn btn-outline-danger px-4 fw-bold" onclick="cancelPayment()">Hủy bỏ
+        </button>
+        <button type="button" class="btn btn-primary px-4 fw-bold shadow-sm" onclick="processPayment()">Xác nhận
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 {% block footer %}
 {% include 'layout/footer.html' %}
 {% endblock %}
 
 <script src="{{ url_for('static', filename='js/header.js') }}"></script>
+<script>
+  let bookingIdInProgress = "{{ booking_id | default('') }}"
 
+function showPaymentModal() {
+    const paymentModalEl = document.getElementById('paymentModal');
+    let paymentModal = bootstrap.Modal.getInstance(paymentModalEl);
+    if (!paymentModal) {
+        paymentModal = new bootstrap.Modal(paymentModalEl);
+    }
+    paymentModal.show();
+}
+
+function hidePaymentModal() {
+    const paymentModalEl = document.getElementById('paymentModal');
+    const paymentModal = bootstrap.Modal.getInstance(paymentModalEl);
+    if (paymentModal) {
+        paymentModal.hide();
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const bookingInProgress = "{{ booking_in_progress | default('false') }}";
+    const expiresAtStr = "{{ booking_expires_at | default('') }}";
+	console.log(bookingInProgress)
+    if (bookingInProgress === "true") {
+       openPaymentModal(bookingIdInProgress, expiresAtStr);
+    }
+});
+
+function openPaymentModal(bookingId, expiresAtStr) {
+	console.log("oke")
+    const expiresAt = new Date(expiresAtStr).getTime();
+    const now = new Date().getTime();
+
+    if (expiresAt <= now) {
+        console.warn("Thời gian giữ ghế đã hết hạn.");
+        return;
+    }
+
+	if (bookingId) {
+		bookingIdInProgress = bookingId
+	}
+    showPaymentModal();
+    const timerDisplay = document.getElementById('payment-timer');
+
+    const countdownInterval = setInterval(function() {
+       const currentTime = new Date().getTime();
+       const distance = expiresAt - currentTime;
+
+       if (distance > 0) {
+          const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          timerDisplay.innerHTML =
+             (minutes < 10 ? "0" + minutes : minutes) + ":" +
+             (seconds < 10 ? "0" + seconds : seconds);
+       } else {
+          clearInterval(countdownInterval);
+          timerDisplay.innerHTML = "00:00";
+
+          // Đã sửa thành gọi hàm toàn cục
+          hidePaymentModal();
+
+          alert("Đã hết thời gian giữ ghế. Giao dịch của bạn đã bị huỷ!");
+          // Việc reload trang sẽ yêu cầu Backend render lại trạng thái mới nhất
+          window.location.reload();
+       }
+    }, 1000);
+}
+
+async function cancelPayment() {
+    const warningMessage = "Lưu ý: Bạn chỉ được đặt tối đa 8 vé cho mỗi suất chiếu.\n\n" +
+                           "Nếu bạn hủy bây giờ, các ghế đã chọn vẫn sẽ bị tính vào giới hạn số lượng ghế đã đặt của bạn. " +
+                           "Bạn có chắc chắn muốn hủy bỏ giao dịch này không?";
+
+    if (!confirm(warningMessage)) return;
+
+    if (!bookingIdInProgress) {
+        alert("Không tìm thấy mã giao dịch để hủy. Vui lòng tải lại trang!");
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/bookings/${bookingIdInProgress}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            alert("Đã hủy giao dịch thành công.");
+            hidePaymentModal();
+            window.location.reload();
+        } else {
+            const data = await response.json();
+            alert(data.message || data.error || "Có lỗi xảy ra khi hủy giao dịch.");
+        }
+    } catch (error) {
+        console.error("Lỗi khi gọi API hủy giao dịch:", error);
+        alert("Lỗi kết nối máy chủ. Vui lòng thử lại sau!");
+    }
+}
+
+
+async function processPayment() {
+    // 1. Kiểm tra xem có ID đơn hàng không
+    if (!bookingIdInProgress) {
+        alert("Không tìm thấy mã giao dịch. Vui lòng tải lại trang!");
+        return;
+    }
+
+    const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+
+    // 2. Cập nhật UI: Disable nút bấm để tránh user bấm đúp 2 lần gây lỗi
+    const btnSubmit = document.querySelector('#paymentModal .btn-primary');
+    const originalText = btnSubmit.innerHTML;
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+
+    try {
+        const response = await fetch('/api/payment', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+                booking_id: bookingIdInProgress,
+                method: selectedMethod
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || data.error || "Khởi tạo thanh toán thất bại!");
+        }
+
+        if (selectedMethod === 'stripe') {
+            window.location.href = `/payment/stripe?secret=${data.client_secret}&pk=${data.public_key}`;
+        } else if (selectedMethod === 'momo') {
+            if (data.payUrl) {
+                window.location.href = data.payUrl;
+            } else {
+                throw new Error("Không nhận được đường link thanh toán từ MoMo.");
+            }
+        }
+
+    } catch (error) {
+        console.error("Payment API Error:", error);
+        alert(error.message);
+
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = originalText;
+    }
+}
+</script>
 {% block js %} {% endblock %}
 </body>
 </html>

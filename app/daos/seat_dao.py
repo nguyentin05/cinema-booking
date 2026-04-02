@@ -22,8 +22,8 @@ def get_seats_by_ids(seat_ids):
             .all())
 
 
-def get_price_of_seats(seats, args):
-    start_at = args.get('start_at', datetime.now())
+def get_price_of_seats(seats, **kwargs):
+    start_at = kwargs.get('start_at', datetime.now())
     day_of_week = DayOfWeek(start_at.isoweekday())
     price_rules = PriceRule.query.filter(
         or_(

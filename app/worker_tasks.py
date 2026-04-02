@@ -3,7 +3,7 @@ from datetime import datetime
 from celery import shared_task
 
 from app import db
-from app.models import Booking, BookingStatus, Ticket, TicketStatus
+from app.models import Booking, BookingStatus, Ticket
 
 
 @shared_task(bind=True, max_retries=3)
