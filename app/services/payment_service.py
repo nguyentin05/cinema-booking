@@ -46,12 +46,10 @@ class StripePaymentService(PaymentService):
             }],
             mode='payment',
             ui_mode='embedded_page',
-            payment_intent_data={
-                'metadata': {
-                    'booking_id': booking.id
-                }
+            metadata={
+                "booking_id": booking.id,
             },
-            return_url="http://localhost:5000/return?session_id={CHECKOUT_SESSION_ID}",
+            return_url=kwargs.get("return_url", "http://localhost:5000")
         )
 
         return {

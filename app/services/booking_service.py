@@ -1,10 +1,9 @@
-import json
 from datetime import datetime, timedelta
 
 from flask import current_app
 
 from app import db
-from app.daos import seat_dao, ticket_dao, booking_dao
+from app.daos import seat_dao, booking_dao
 from app.models import Ticket, Booking, Showtime, BookingStatus
 from app.utils import get_redis
 
@@ -106,13 +105,17 @@ class BookingService:
 
         booking.status = BookingStatus.CANCELLED
 
-        redis_client = get_redis()
-        redis_client.delete(f"hold:user:{user_id}:booking_id")
-        hold_seat_keys = [f"hold:showtime:{booking.showtime_id}:seat:{seat['id']}" for seat in booking.seats_data]
-        redis_client.delete(*hold_seat_keys)
+        BookingService.delete_hold_seats(booking)
 
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             raise e
+
+    @staticmethod
+    def delete_hold_seats(booking):
+        redis_client = get_redis()
+        redis_client.delete(f"hold:user:{booking.user_id}:booking_id")
+        hold_seat_keys = [f"hold:showtime:{booking.showtime_id}:seat:{seat['id']}" for seat in booking.seats_data]
+        redis_client.delete(*hold_seat_keys)

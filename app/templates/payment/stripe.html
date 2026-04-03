@@ -77,7 +77,7 @@
   const clientSecret = urlParams.get('secret');
   const stripePublicKey = urlParams.get('pk');
 
-  const expiresAtStr = "{{ booking_expires_at | default('') }}"; // Giả định dùng Jinja
+  const bookingInProgress = {{ booking_in_progress | tojson }}
 
   const stripe = Stripe(stripePublicKey);
 
@@ -99,6 +99,7 @@
 
   // 3. Hàm chạy đồng hồ đếm ngược
   function startTimer() {
+      expiresAtStr = bookingInProgress.expires_at
       if (!expiresAtStr) return;
 
       const expiresAt = new Date(expiresAtStr).getTime();
