@@ -75,7 +75,7 @@
 
 <script src="{{ url_for('static', filename='js/header.js') }}"></script>
 <script>
-  let bookingIdInProgress = "{{ booking_id | default('') }}"
+  let bookingInProgress = {{ booking_in_progress | tojson }}
 
 function showPaymentModal() {
     const paymentModalEl = document.getElementById('paymentModal');
@@ -95,17 +95,18 @@ function hidePaymentModal() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-    const bookingInProgress = "{{ booking_in_progress | default('false') }}";
-    const expiresAtStr = "{{ booking_expires_at | default('') }}";
-	console.log(bookingInProgress)
-    if (bookingInProgress === "true") {
-       openPaymentModal(bookingIdInProgress, expiresAtStr);
+    if (bookingInProgress) {
+        console.log(bookingInProgress)
+       openPaymentModal();
     }
 });
 
-function openPaymentModal(bookingId, expiresAtStr) {
-	console.log("oke")
-    const expiresAt = new Date(expiresAtStr).getTime();
+function openPaymentModal(booking) {
+  if (booking) {
+    bookingInProgress = booking
+  }
+
+    const expiresAt = new Date(bookingInProgress.expires_at).getTime();
     const now = new Date().getTime();
 
     if (expiresAt <= now) {
@@ -113,9 +114,6 @@ function openPaymentModal(bookingId, expiresAtStr) {
         return;
     }
 
-	if (bookingId) {
-		bookingIdInProgress = bookingId
-	}
     showPaymentModal();
     const timerDisplay = document.getElementById('payment-timer');
 
@@ -151,13 +149,13 @@ async function cancelPayment() {
 
     if (!confirm(warningMessage)) return;
 
-    if (!bookingIdInProgress) {
+    if (!bookingInProgress) {
         alert("Không tìm thấy mã giao dịch để hủy. Vui lòng tải lại trang!");
         return;
     }
 
     try {
-        const response = await fetch(`/api/bookings/${bookingIdInProgress}`, {
+        const response = await fetch(`/api/bookings/${bookingInProgress.id}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'
@@ -181,7 +179,7 @@ async function cancelPayment() {
 
 async function processPayment() {
     // 1. Kiểm tra xem có ID đơn hàng không
-    if (!bookingIdInProgress) {
+    if (!bookingInProgress) {
         alert("Không tìm thấy mã giao dịch. Vui lòng tải lại trang!");
         return;
     }
@@ -201,7 +199,7 @@ async function processPayment() {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({
-                booking_id: bookingIdInProgress,
+                booking_id: bookingInProgress.id,
                 method: selectedMethod
             })
         });

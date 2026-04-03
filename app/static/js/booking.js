@@ -135,7 +135,7 @@ async function submitBooking() {
         btn.disabled = false;
 
         if (response.ok) {
-            openPaymentModal(data.booking_id, data.expires_at)
+            openPaymentModal(data)
         } else {
             throw new Error(data.message || data.error);
         }

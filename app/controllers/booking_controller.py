@@ -1,7 +1,7 @@
 from flask import Blueprint, redirect, render_template
 from flask_login import current_user, login_required
 
-from app.daos import showtime_dao, ticket_dao
+from app.daos import showtime_dao, booking_dao
 from app.services.seat_service import SeatService
 
 booking_page = Blueprint('booking_page', __name__)
@@ -16,7 +16,10 @@ def index(showtime_id):
 
     room = showtime.room
     seats = SeatService.get_seats_of_showtime(showtime_id)
-    already_booked_seats = ticket_dao.count_seats_of_showtime_booked_by_user(showtime_id, current_user.id)
+    already_booked_seats = booking_dao.count_booked_seats_by_user(
+        showtime_id=showtime_id,
+        user_id=current_user.id
+    )
 
     seating_matrix = {}
     for seat in seats:

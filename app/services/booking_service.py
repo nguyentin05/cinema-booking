@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from flask import current_app
 
 from app import db
-from app.daos import seat_dao, ticket_dao
+from app.daos import seat_dao, ticket_dao, booking_dao
 from app.models import Ticket, Booking, Showtime, BookingStatus
 from app.utils import get_redis
 
@@ -48,9 +48,7 @@ class BookingService:
             seats_str = ", ".join(booked_seat_names)
             raise ValueError(f"The following seats are already booked: {seats_str}")
 
-        already_booked_seats = ticket_dao.count_seats_of_showtime_booked_by_user(
-            showtime_id=showtime_id,
-            user_id=user_id)
+        already_booked_seats = booking_dao.count_booked_seats_by_user(user_id=user_id, showtime_id=showtime_id)
 
         if already_booked_seats + len(seat_ids) > max_booking:
             raise ValueError(f"You can only book a maximum of {max_booking} seats per showtime.")
@@ -66,11 +64,19 @@ class BookingService:
         booking_expiration_time = current_app.config.get("BOOKING_EXPIRATION_TIME")
         seat_price_map = seat_dao.get_price_of_seats(seats_map.values(), start_at=showtime.start_at)
         total_price = sum(price for price in seat_price_map.values())
+        seats_data = [
+            {"id": seat.id,
+             "name": f"{seat.seat_row}{seat.seat_number}",
+             "price": seat_price_map.get(seat.id)}
+            for seat in seats_map.values()
+        ]
         booking = Booking(
             user_id=user_id,
             showtime_id=showtime_id,
             expires_at=now + timedelta(seconds=booking_expiration_time),
-            total_price=total_price
+            total_price=total_price,
+            total_seats=len(seat_ids),
+            seats_data=seats_data
         )
         db.session.add(booking)
         db.session.flush()
@@ -79,11 +85,7 @@ class BookingService:
         for s_id in seat_ids:
             pipe.set(f"hold:showtime:{showtime_id}:seat:{s_id}", s_id, ex=booking_expiration_time, nx=True)
 
-        pipe.set(f"hold:booking:{booking.id}:data", json.dumps({
-            "user_id": user_id,
-            "seats": [{"id": s_id, "price": seat_price_map[s_id]} for s_id in seat_ids]
-        }), ex=booking_expiration_time, nx=True)
-
+        pipe.set(f"hold:user:{user_id}:booking_id", booking.id, ex=booking_expiration_time, nx=True)
         pipe.execute()
 
         try:
@@ -105,19 +107,9 @@ class BookingService:
         booking.status = BookingStatus.CANCELLED
 
         redis_client = get_redis()
-        hold_data_key = f"hold:booking:{booking_id}:data"
-        hold_data = redis_client.get(hold_data_key)
-
-        if hold_data:
-            if isinstance(hold_data, bytes):
-                hold_data = hold_data.decode('utf-8')
-
-            data = json.loads(hold_data)
-            hold_seat_keys = [f"hold:showtime:{booking.showtime_id}:seat:{seat['id']}" for seat in data['seats']]
-            hold_seat_keys.append(hold_data_key)
-
-            if hold_seat_keys:
-                redis_client.delete(*hold_seat_keys)
+        redis_client.delete(f"hold:user:{user_id}:booking_id")
+        hold_seat_keys = [f"hold:showtime:{booking.showtime_id}:seat:{seat['id']}" for seat in booking.seats_data]
+        redis_client.delete(*hold_seat_keys)
 
         try:
             db.session.commit()

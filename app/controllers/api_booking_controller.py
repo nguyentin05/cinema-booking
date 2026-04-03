@@ -20,7 +20,10 @@ def booking_seats():
     try:
         booking = BookingService.booking_seats(user_id, showtime_id, seat_ids)
         return jsonify({
-            "booking_id": booking.id,
+            "id": booking.id,
+            "seats_data": booking.seats_data,
+            "total_seats": booking.total_seats,
+            "total_price": booking.total_price,
             "expires_at": booking.expires_at.isoformat()
         }), 200
     except ValueError as ex:
