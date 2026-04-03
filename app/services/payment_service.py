@@ -38,7 +38,7 @@ class StripePaymentService(PaymentService):
                 'price_data': {
                     'currency': 'vnd',
                     'product_data': {
-                        'name': f'Vé xem phim: ',
+                        'name': 'Vé xem phim: ',
                     },
                     'unit_amount': int(booking.total_price),
                 },

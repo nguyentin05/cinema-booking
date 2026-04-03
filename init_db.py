@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from app import create_app, db
 from app.models import User, UserRole, Genre, Movie, SeatType, Room, Seat, Showtime, PriceRule
-from config import configs
 
 genres = [
     {"name": "Action"},
