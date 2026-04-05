@@ -1,7 +1,8 @@
+import os
+
 import redis
 import stripe
 from flask import Flask
-import os
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 
@@ -33,9 +34,6 @@ def create_app():
     )
 
     app.extensions['redis'] = redis_client
-
-    from app.controllers.api_movie_controller import api_movie
-    app.register_blueprint(api_movie, url_prefix='/api/movies')
 
     from app.controllers.api_showtime_controller import api_showtime
     app.register_blueprint(api_showtime, url_prefix='/api/showtimes')
