@@ -69,4 +69,4 @@ def get_payment_service(method) -> PaymentService:
             'stripe': StripePaymentService()
         }
 
-    return _factory[method]
+    return _factory.get(method)

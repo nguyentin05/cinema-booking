@@ -27,7 +27,7 @@ def booking_seats():
             "expires_at": booking.expires_at.isoformat()
         }), 200
     except ValueError as ex:
-        return http_bad_request(str(ex))
+        return http_bad_request(message=str(ex))
     except Exception as ex:
         return http_internal_server_error(ex)
 
@@ -39,8 +39,8 @@ def cancel_booking(booking_id):
         BookingService.cancel_booking(current_user.id, booking_id)
         return "", 204
     except ValueError as ex:
-        return http_bad_request(str(ex))
+        return http_bad_request(message=str(ex))
     except PermissionError as ex:
-        return http_forbidden(str(ex))
+        return http_forbidden(message=str(ex))
     except Exception as ex:
         return http_internal_server_error(ex)

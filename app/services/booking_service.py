@@ -5,6 +5,7 @@ from flask import current_app
 from app import db
 from app.daos import seat_dao, booking_dao
 from app.models import Ticket, Booking, Showtime, BookingStatus
+from app.services.seat_service import SeatService
 from app.utils import get_redis
 
 
@@ -43,7 +44,9 @@ class BookingService:
 
         if booked_seat_ids or hold_seat_ids:
             conflict_seat_ids = [ticket[0] for ticket in booked_seat_ids] + hold_seat_ids
-            booked_seat_names = [f"{seats_map[s_id].row}{seats_map[s_id].number}" for s_id in conflict_seat_ids]
+            booked_seat_names = [
+                f"{seats_map[s_id].seat_row}{seats_map[s_id].seat_number}" for s_id in conflict_seat_ids
+            ]
             seats_str = ", ".join(booked_seat_names)
             raise ValueError(f"The following seats are already booked: {seats_str}")
 
@@ -78,17 +81,10 @@ class BookingService:
             seats_data=seats_data
         )
         db.session.add(booking)
-        db.session.flush()
-
-        pipe = redis_client.pipeline()
-        for s_id in seat_ids:
-            pipe.set(f"hold:showtime:{showtime_id}:seat:{s_id}", s_id, ex=booking_expiration_time, nx=True)
-
-        pipe.set(f"hold:user:{user_id}:booking_id", booking.id, ex=booking_expiration_time, nx=True)
-        pipe.execute()
 
         try:
             db.session.commit()
+            SeatService.hold_seat_for_booking(booking)
             return booking
         except Exception:
             db.session.rollback()
@@ -105,17 +101,10 @@ class BookingService:
 
         booking.status = BookingStatus.CANCELLED
 
-        BookingService.delete_hold_seats(booking)
+        SeatService.delete_hold_seats_of_booking(booking)
 
         try:
             db.session.commit()
         except Exception as e:
             db.session.rollback()
             raise e
-
-    @staticmethod
-    def delete_hold_seats(booking):
-        redis_client = get_redis()
-        redis_client.delete(f"hold:user:{booking.user_id}:booking_id")
-        hold_seat_keys = [f"hold:showtime:{booking.showtime_id}:seat:{seat['id']}" for seat in booking.seats_data]
-        redis_client.delete(*hold_seat_keys)
