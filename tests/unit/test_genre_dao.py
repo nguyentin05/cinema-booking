@@ -1,12 +1,11 @@
 import pytest
 
-from app import db
 from app.daos import genre_dao
 from app.models import Genre
 
 
 @pytest.fixture
-def sample_data(test_app):
+def sample_data(db_session):
     genres = [
         {"name": "Action"},
         {"name": "Comedy"},
@@ -24,10 +23,10 @@ def sample_data(test_app):
 
     for g in genres:
         genre_obj = Genre(**g)
-        db.session.add(genre_obj)
+        db_session.add(genre_obj)
         res.append(genre_obj)
 
-    db.session.commit()
+    db_session.commit()
 
     return res
 

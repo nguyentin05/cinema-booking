@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 
 from app import create_app, db
 from app.models import User, UserRole, Genre, Movie, SeatType, Room, Seat, Showtime, PriceRule
-from config import configs
 
 genres = [
     {"name": "Action"},
@@ -109,7 +108,7 @@ price_rules = [
 ]
 
 if __name__ == '__main__':
-    app = create_app(configs['dev'])
+    app = create_app()
     with app.app_context():
         db.drop_all()
         db.create_all()

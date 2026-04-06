@@ -5,7 +5,7 @@ from .seat import SeatType, Seat
 from .showtime import Showtime
 from .price_rule import PriceRule, DayOfWeek
 from .booking import Booking, BookingStatus
-from .ticket import Ticket, TicketStatus
+from .ticket import Ticket
 
 __all__ = [
     'User', 'UserRole',
@@ -15,5 +15,5 @@ __all__ = [
     'Showtime',
     'PriceRule', 'DayOfWeek',
     'Booking', 'BookingStatus',
-    'Ticket', 'TicketStatus'
+    'Ticket',
 ]

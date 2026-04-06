@@ -1,9 +1,9 @@
 const showtime_id = window.location.pathname.split('/').filter(Boolean).pop();
 const selectedSeats = [];
-const el = document.getElementById('already_booked_seats');
+const elAlreadyBookedSeats = document.getElementById('already_booked_seats');
 let selectedSeatsCount = 0;
-if (el) {
-    selectedSeatsCount = parseInt(el.textContent, 10) || 0;
+if (elAlreadyBookedSeats) {
+    selectedSeatsCount = parseInt(elAlreadyBookedSeats.textContent, 10) || 0;
 }
 
 document.querySelector('.seating-wrapper').addEventListener('click', function(e) {
@@ -101,7 +101,7 @@ function renderSidebar() {
             <h4 class="fw-bold mb-0 text-dark">${totalPrice.toLocaleString('vi-VN')} VND</h4>
         </div>
         <button onclick="submitBooking()" class="btn btn-success w-100 py-3 fw-bold rounded-3">
-            TIẾP TỤC
+            Đặt ghế
         </button>
     `;
 }
@@ -113,6 +113,11 @@ async function submitBooking() {
     }
 
     try {
+        const btn = document.querySelector('button[onclick="submitBooking()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+        btn.disabled = true;
+
         const response = await fetch("/api/bookings", {
             method: "POST",
             credentials: "include",
@@ -124,20 +129,22 @@ async function submitBooking() {
                 seat_ids: selectedSeats.map(s => s.id)
             })
         });
+
         const data = await response.json();
+        btn.innerHTML = originalText;
+        btn.disabled = false;
 
-        if (!response.ok) {
-            const errorMessage = data.message || data.error || "Có lỗi xảy ra từ máy chủ.";
-            throw new Error(errorMessage);
+        if (response.ok) {
+            openPaymentModal(data)
+        } else {
+            throw new Error(data.message || data.error);
         }
-
-        alert(data.message);
-        location.reload();
 
     } catch (err) {
         console.error("Lỗi đặt vé:", err);
         alert(err.message || "Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng!");
     }
 }
+
 
 renderSidebar();
