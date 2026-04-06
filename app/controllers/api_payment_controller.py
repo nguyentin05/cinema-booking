@@ -6,7 +6,7 @@ from flask import Blueprint, request, jsonify, current_app
 from app import db
 from app.decorators import api_login_required
 from app.models import Booking, BookingStatus, Ticket
-from app.services.payment_service import get_payment_service
+from app.services.payment_service import PaymentServiceFactory
 from app.services.seat_service import SeatService
 from app.utils import http_bad_request, http_internal_server_error
 
@@ -20,12 +20,15 @@ def pay():
     method = data.get('method')
     booking_id = data.get('booking_id')
 
-    service = get_payment_service(method)
+    service = PaymentServiceFactory.get(method)
     if not service:
         return http_bad_request("method must be: 'stripe' or 'momo'")
 
     try:
-        res = service.process_payment(booking_id)
+        res = {}
+        if method == 'stripe':
+            return_url = data.get('return_url', request.host_url)
+            res = service.process_payment(booking_id, return_url=return_url)
         res['method'] = method
         return jsonify(res), 200
     except ValueError as ex:

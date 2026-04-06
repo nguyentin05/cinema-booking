@@ -4,7 +4,7 @@ from datetime import datetime
 import stripe.checkout
 from flask import current_app
 
-from app.models import Booking
+from app.models import Booking, BookingStatus
 
 
 class PaymentService(ABC):
@@ -14,7 +14,7 @@ class PaymentService(ABC):
         if not booking:
             raise ValueError("This booking do not exists")
 
-        if booking.expires_at <= datetime.now():
+        if booking.expires_at <= datetime.now() or booking.status == BookingStatus.CANCELLED:
             raise ValueError("This booking has expired.")
 
         return booking
@@ -49,7 +49,7 @@ class StripePaymentService(PaymentService):
             metadata={
                 "booking_id": booking.id,
             },
-            return_url=kwargs.get("return_url", "http://localhost:5000")
+            return_url=kwargs.get("return_url", "http://127.0.0.1:5000")
         )
 
         return {
@@ -58,15 +58,14 @@ class StripePaymentService(PaymentService):
         }
 
 
-_factory = {}
+class PaymentServiceFactory:
+    _payment_services = {
+        'stripe': StripePaymentService
+    }
 
-
-def get_payment_service(method) -> PaymentService:
-    global _factory
-
-    if not _factory:
-        _factory = {
-            'stripe': StripePaymentService()
-        }
-
-    return _factory.get(method)
+    @staticmethod
+    def get(method) -> PaymentService | None:
+        service_class = PaymentServiceFactory._payment_services.get(method)
+        if not service_class:
+            return None
+        return service_class()
