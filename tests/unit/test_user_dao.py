@@ -71,8 +71,8 @@ class TestAddUser:
 
     @pytest.mark.parametrize("name", [
         "",
-        "abc",  # assume name must be > 3 chars based on this test
-        "a" * 51  # assume name must be <= 50 chars
+        "abc",
+        "a" * 51
     ])
     def test_add_user_invalid_name(self, valid_user_payload, name):
         valid_user_payload["name"] = name

@@ -4,11 +4,10 @@ import pytest
 
 from app.daos import booking_dao
 from app.models import User, Booking, BookingStatus
-from app.utils import get_redis
 
 
 @pytest.fixture
-def sample_data(db_session):
+def sample_data(db_session, redis_client):
     user = User(name='test01', email="ximofam@gmail.com", password="Admin123")
     db_session.add(user)
     db_session.flush()
@@ -36,7 +35,6 @@ def sample_data(db_session):
     db_session.add_all([cancelled_booking, pending_booking])
     db_session.flush()
 
-    redis_client = get_redis()
     redis_client.set(f"hold:user:{user.id}:booking_id", pending_booking.id, ex=1000, nx=True)
 
     return {
@@ -72,13 +70,12 @@ class TestGetBookingInProgressOfUser:
         assert booking['total_price'] == pending_booking.total_price
         assert booking['seats_data'] == pending_booking.seats_data
 
-    def test_fail_when_del_redis_key(self, sample_data):
+    def test_fail_when_del_redis_key(self, sample_data, redis_client):
         user_id = sample_data['user'].id
         booking = booking_dao.get_booking_in_progress_of_user(user_id)
 
         assert booking is not None
 
-        redis_client = get_redis()
         redis_client.delete(f"hold:user:{user_id}:booking_id")
         booking = booking_dao.get_booking_in_progress_of_user(user_id)
 
