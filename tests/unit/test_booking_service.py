@@ -5,17 +5,13 @@ import pytest
 from flask import current_app
 from werkzeug.exceptions import Forbidden, NotFound, BadRequest, Conflict
 
-from app import create_app
 from app.models import BookingStatus
 from app.services.booking_service import BookingService
 
-app = create_app('testing_v2')
-
 
 @pytest.fixture(autouse=True)
-def app_ctx():
-    with app.app_context():
-        yield
+def app_ctx(test_app):
+    pass
 
 
 @pytest.fixture(autouse=True)
@@ -27,7 +23,7 @@ def mock_redis(mocker):
     return redis_client
 
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def mock_db(mocker):
     db_mock = mocker.patch("app.services.booking_service.db")
 

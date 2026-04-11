@@ -4,20 +4,16 @@ from unittest.mock import MagicMock, call
 import pytest
 from werkzeug.exceptions import NotFound, Conflict
 
-from app import create_app
 from app.services.seat_service import SeatService
 
 NOW = datetime(2026, 4, 11, 19, 0)
 SHOWTIME_ID = 1
 USER_ID = 5
 
-app = create_app('testing_v2')
-
 
 @pytest.fixture(autouse=True)
-def app_ctx():
-    with app.app_context():
-        yield
+def app_ctx(test_app):
+    pass
 
 
 @pytest.fixture
