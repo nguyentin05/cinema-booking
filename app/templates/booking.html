@@ -12,7 +12,7 @@
     <h3>Room: <span class="text-primary">{{ room.name }}</span></h3>
     <h5 class="text-muted">Movie: {{ showtime.movie.title }} | Time: {{ showtime.start_at.strftime('%H:%M
       %d/%m/%Y') }}</h5>
-    <a href="{{ url_for('movie_page.index', movie_id=showtime.movie.id) }}" class="btn btn-secondary">Back</a>
+    <a href="{{ url_for('main.get_movie', movie_id=showtime.movie.id) }}" class="btn btn-secondary">Back</a>
   </div>
 
   <div class="row">

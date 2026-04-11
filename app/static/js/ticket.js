@@ -8,47 +8,47 @@ let tickets = [];
 
 // ── Helpers ────────────────────────────────────────────────
 function formatDateTime(iso) {
-const d = new Date(iso);
-return d.toLocaleString('vi-VN', {
-  hour: '2-digit', minute: '2-digit',
-  day: '2-digit', month: '2-digit', year: 'numeric'
-});
+	const d = new Date(iso);
+	return d.toLocaleString('vi-VN', {
+	  hour: '2-digit', minute: '2-digit',
+	  day: '2-digit', month: '2-digit', year: 'numeric'
+	});
 }
 
 function formatCurrency(amount) {
-return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+	return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 }
 
 function showToast(message, type = 'success') {
-const el = document.getElementById('toast');
-el.className = `toast text-white border-0 bg-${type}`;
-document.getElementById('toast-msg').textContent = message;
-toastEl.show();
+	const el = document.getElementById('toast');
+	el.className = `toast text-white border-0 bg-${type}`;
+	document.getElementById('toast-msg').textContent = message;
+	toastEl.show();
 }
 
 // ── Render ─────────────────────────────────────────────────
 function actionButtonsHTML(ticket) {
-if (ticket.status !== 'ACTIVE') return '';
-return `
-  <div class="d-flex gap-2 mt-2">
-	<button class="btn btn-sm btn-outline-primary" onclick="showQR(${ticket.id})">
-	  Mã QR
-	</button>
-	<button class="btn btn-sm btn-outline-danger"
-			onclick="openCancelModal(${ticket.id}, '${ticket.showtime.movie_title}', '${ticket.seat.name}')">
-	  Hủy vé
-	</button>
-  </div>`;
+	if (ticket.status !== 'ACTIVE') return '';
+	return `
+	  <div class="d-flex gap-2 mt-2">
+		<button class="btn btn-sm btn-outline-primary" onclick="showQR(${ticket.id})">
+		  Mã QR
+		</button>
+		<button class="btn btn-sm btn-outline-danger"
+				onclick="openCancelModal(${ticket.id}, '${ticket.showtime.movie_title}', '${ticket.seat.name}')">
+		  Hủy vé
+		</button>
+	  </div>`;
 }
 
 function statusBadge(status) {
-const map = {
-  ACTIVE:    ['bg-success-subtle text-success border-success-subtle',   'Sắp chiếu'],
-  USED:      ['bg-secondary-subtle text-secondary border-secondary-subtle', 'Đã xem'],
-  CANCELLED: ['bg-danger-subtle text-danger border-danger-subtle',       'Đã hủy'],
-};
-const [cls, label] = map[status] || ['bg-light text-muted', status];
-return `<span class="badge rounded-pill border ${cls}">${label}</span>`;
+	const map = {
+	  ACTIVE:    ['bg-success-subtle text-success border-success-subtle',   'Sắp chiếu'],
+	  USED:      ['bg-secondary-subtle text-secondary border-secondary-subtle', 'Đã xem'],
+	  CANCELLED: ['bg-danger-subtle text-danger border-danger-subtle',       'Đã hủy'],
+	};
+	const [cls, label] = map[status] || ['bg-light text-muted', status];
+	return `<span class="badge rounded-pill border ${cls}">${label}</span>`;
 }
 
 function renderTicket(ticket) {
@@ -122,14 +122,14 @@ document.getElementById('filterContainer').addEventListener('click', e => {
 
 // ── QR Modal ───────────────────────────────────────────────
 window.showQR = function(ticketId) {
-const ticket = tickets.find(t => t.id === ticketId);
-if (!ticket) return;
-document.getElementById('qr-img-wrapper').innerHTML =
-  `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(ticket.qr_payload)}"
-		class="img-fluid rounded" alt="QR">`;
-document.getElementById('qr-seat-label').textContent =
-  `${ticket.showtime.movie_title} · Ghế ${ticket.seat.name}`;
-qrModal.show();
+	const ticket = tickets.find(t => t.id === ticketId);
+	if (!ticket) return;
+	document.getElementById('qr-img-wrapper').innerHTML =
+	  `<img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(ticket.qr_payload)}"
+			class="img-fluid rounded" alt="QR">`;
+	document.getElementById('qr-seat-label').textContent =
+	  `${ticket.showtime.movie_title} · Ghế ${ticket.seat.name}`;
+	qrModal.show();
 };
 
 // ── Cancel Modal ───────────────────────────────────────────
@@ -158,8 +158,9 @@ document.getElementById('confirm-cancel-btn').addEventListener('click', async ()
 	  } else {
 		showToast(data.error || 'Hủy vé thất bại.', 'danger');
 	  }
-	} catch {
-	  showToast('Lỗi kết nối, vui lòng thử lại.', 'danger');
+	} catch (error) {
+		console.log(error)
+	  showToast(error.response?.data?.error || 'Lỗi kết nối, vui lòng thử lại.', 'danger');
 	} finally {
 	  spinner.classList.add('d-none');
 	  confirmBtn.disabled = false;
