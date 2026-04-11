@@ -11,7 +11,7 @@ NOW = datetime(2026, 4, 11, 19, 0)
 SHOWTIME_ID = 1
 USER_ID = 5
 
-app = create_app('dev')
+app = create_app('testing_v2')
 
 
 @pytest.fixture(autouse=True)

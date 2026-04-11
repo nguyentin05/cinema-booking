@@ -8,7 +8,7 @@ from app import create_app
 from app.models import BookingStatus
 from app.services.booking_service import BookingService
 
-app = create_app('dev')
+app = create_app('testing_v2')
 
 
 @pytest.fixture(autouse=True)

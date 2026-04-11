@@ -48,6 +48,12 @@ class TestConfig(Config):
     PAGE_SIZE = 4
 
 
+class TestV2Config(Config):
+    TESTING = True
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///:memory:")
+    PAGE_SIZE = 4
+
+
 class StagingConfig(Config):
     SQLALCHEMY_DATABASE_URI = os.environ.get("SQLALCHEMY_DATABASE_URI")
     PAGE_SIZE = 8
@@ -61,6 +67,7 @@ class ProductionConfig(Config):
 configs = {
     'dev': DevelopConfig,
     'testing': TestConfig,
+    'testing_v2': TestV2Config,
     'staging': StagingConfig,
     'production': ProductionConfig
 }
