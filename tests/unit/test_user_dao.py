@@ -85,7 +85,7 @@ class TestAddUser:
         valid_user_payload['email'] = "x" * 255 + "@gmail.com"
 
         with pytest.raises(ValueError, match="Email must be less than or equal 255 characters"):
-            user = user_dao.add_user(**valid_user_payload)
+            user_dao.add_user(**valid_user_payload)
 
     def test_add_user_email_exists(self, existing_user, valid_user_payload, db_session):
         valid_user_payload['email'] = existing_user.email
