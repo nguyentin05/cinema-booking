@@ -19,18 +19,6 @@ def count_booked_seats_by_user(user_id, showtime_id):
 
 
 def get_booking_in_progress_of_user(user_id):
-    # res = (db.session.query(Booking.id, Booking.expires_at)
-    # .filter(
-    #     Booking.user_id == user_id,
-    #     Booking.status == BookingStatus.PENDING.name,
-    #     Booking.expires_at > datetime.now()
-    # )).first()
-    #
-    # if res:
-    #     return True, res.id, res.expires_at.isoformat()
-    #
-    # return False, None, None
-
     redis_client = get_redis()
     booking_id = redis_client.get(f"hold:user:{user_id}:booking_id")
     if booking_id:

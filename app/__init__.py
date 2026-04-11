@@ -40,6 +40,8 @@ def create_app():
 
     app.extensions['redis'] = redis_client
 
+    register_handle_exception(app)
+
     from app.controllers.api_showtime_controller import api_showtime
     app.register_blueprint(api_showtime, url_prefix='/api/showtimes')
 
@@ -58,17 +60,8 @@ def create_app():
     from app.controllers.auth_controller import auth
     app.register_blueprint(auth, url_prefix='/auth')
 
-    from app.controllers.movie_controller import movie_page
-    app.register_blueprint(movie_page, url_prefix='/movie')
-
     from app.controllers.booking_controller import booking_page
     app.register_blueprint(booking_page, url_prefix='/booking')
-
-    from app.controllers.payment_controller import payment_page
-    app.register_blueprint(payment_page, url_prefix='/payment')
-
-    from app.controllers.ticket_controller import ticket_page
-    app.register_blueprint(ticket_page, url_prefix='/ticket')
 
     return app
 
