@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock
 
 import pytest
+from flask import current_app
 from werkzeug.exceptions import Forbidden, NotFound, BadRequest, Conflict
 
 from app import create_app
@@ -90,7 +91,7 @@ class TestBookingSeats:
         mock_query = mocker.patch("app.services.booking_service.Showtime.query")
         mock_query.get.return_value = valid_showtime
 
-        max_booking = app.config['MAX_BOOKING_SEAT_EACH_SHOWTIME']
+        max_booking = current_app.config['MAX_BOOKING_SEAT_EACH_SHOWTIME']
 
         with pytest.raises(BadRequest, match=f"maximum of {max_booking} seats per showtime"):
             BookingService.booking_seats(1, valid_showtime.id, [i for i in range(1, max_booking + 2)])
@@ -125,7 +126,7 @@ class TestBookingSeats:
         s1 = MagicMock(id=1, room_id=10)
         mock_daos.seat_dao.get_seats_by_ids.return_value = [s1]
 
-        max_booking = app.config['MAX_BOOKING_SEAT_EACH_SHOWTIME']
+        max_booking = current_app.config['MAX_BOOKING_SEAT_EACH_SHOWTIME']
 
         mock_daos.booking_dao.count_booked_seats_by_user.return_value = max_booking
 
