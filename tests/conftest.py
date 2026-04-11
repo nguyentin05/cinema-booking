@@ -1,5 +1,3 @@
-import os
-
 import fakeredis
 import pytest
 
@@ -8,15 +6,18 @@ from app import create_app, db
 
 @pytest.fixture
 def test_app():
-    os.environ['APP_ENV'] = 'testing'
-    app = create_app()
-
-    fake_redis_client = fakeredis.FakeRedis(decode_responses=True)
-    app.extensions['redis'] = fake_redis_client
+    app = create_app('testing')
 
     with app.app_context():
         yield app
 
+
+@pytest.fixture
+def redis_client(test_app):
+    fake_redis_client = fakeredis.FakeRedis(decode_responses=True)
+    test_app.extensions['redis'] = fake_redis_client
+
+    yield fake_redis_client
     fake_redis_client.flushall()
 
 

@@ -26,6 +26,28 @@ def valid_user_payload():
     }
 
 
+class TestGetUserById:
+    def test_sucess(self, existing_user, db_session):
+        user2 = User(
+            name='test02',
+            email='ximofam2@gmail.com',
+            password='123456Abc'
+        )
+        db_session.add(user2)
+        db_session.commit()
+
+        user = user_dao.get_user_by_id(user2.id)
+
+        assert user is not None
+        assert user == user2
+
+    def test_not_exists_user_with_id(self, existing_user):
+        non_existent_id = existing_user.id + 72
+        user = user_dao.get_user_by_id(non_existent_id)
+
+        assert user is None
+
+
 class TestAddUser:
 
     def test_add_user_success(self, valid_user_payload, db_session):
@@ -71,8 +93,8 @@ class TestAddUser:
 
     @pytest.mark.parametrize("name", [
         "",
-        "abc",  # assume name must be > 3 chars based on this test
-        "a" * 51  # assume name must be <= 50 chars
+        "abc",
+        "a" * 51
     ])
     def test_add_user_invalid_name(self, valid_user_payload, name):
         valid_user_payload["name"] = name

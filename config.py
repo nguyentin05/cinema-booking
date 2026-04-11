@@ -21,6 +21,9 @@ class Config:
     CACHE_TYPE = "RedisCache"
     CACHE_REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
     CACHE_DEFAULT_TIMEOUT = 600
+    ROOM_NUM = 5
+    SEAT_PER_ROW = 10
+    SHOWTIME_FOR_ROOM_OVER_DAYS = 7
 
     @staticmethod
     def init_app(app):

@@ -1,5 +1,8 @@
+import os
 import random
 from datetime import datetime, timedelta
+
+from flask import current_app
 
 from app import create_app, db
 from app.models import User, UserRole, Genre, Movie, SeatType, Room, Seat, Showtime, PriceRule
@@ -107,48 +110,47 @@ price_rules = [
     {"priority": 2, "day_of_week": "SUNDAY", "seat_type_id": 3, "price": 120000}  # Couple seat and sunday
 ]
 
-if __name__ == '__main__':
-    app = create_app()
-    with app.app_context():
-        db.drop_all()
-        db.create_all()
 
-        # Add admin user
-        admin = User(email="admin@gmail.com",
-                     name="ximofam",
-                     password='Admin123',
-                     role=UserRole.ADMIN)
+def init_database():
+    db.drop_all()
+    db.create_all()
 
-        db.session.add(admin)
+    # Add admin user
+    admin = User(email="admin@gmail.com",
+                 name="ximofam",
+                 password='Admin123',
+                 role=UserRole.ADMIN)
 
-        # Add Genres
-        db.session.add_all([Genre(**g) for g in genres])
-        db.session.flush()
+    db.session.add(admin)
 
-        genre_map = {genre.id: genre for genre in Genre.query.all()}
+    # Add Genres
+    db.session.add_all([Genre(**g) for g in genres])
+    db.session.flush()
 
-        # Add Movies
-        for m in movies:
-            genre_ids = m.pop('genre_ids')
+    genre_map = {genre.id: genre for genre in Genre.query.all()}
 
-            movie = Movie(**m)
-            movie.genres = [genre_map[g_id] for g_id in genre_ids]
+    # Add Movies
+    for m in movies:
+        genre_ids = m.pop('genre_ids')
 
-            db.session.add(movie)
+        movie = Movie(**m)
+        movie.genres = [genre_map[g_id] for g_id in genre_ids]
 
-        # Add seat_types
-        db.session.add_all([SeatType(**st) for st in seat_types])
-        db.session.flush()
+        db.session.add(movie)
 
-        # Add price_rules
-        db.session.add_all([PriceRule(**pr) for pr in price_rules])
-        db.session.flush()
+    # Add seat_types
+    db.session.add_all([SeatType(**st) for st in seat_types])
+    db.session.flush()
 
-        # Create 5 room each room have 50 seat
+    # Add price_rules
+    db.session.add_all([PriceRule(**pr) for pr in price_rules])
+    db.session.flush()
+
+    rooms_to_create = current_app.config['ROOM_NUM']
+    if rooms_to_create:
         seat_type_map = {st.name: st for st in SeatType.query.all()}
-        rooms_to_create = 5
         rows = ['A', 'B', 'C', 'D', 'E']
-        seats_per_row = 10
+        seats_per_row = current_app.config.get('SEAT_PER_ROW', 1)
 
         for i in range(1, rooms_to_create + 1):
             room_name = f"Room 0{i}"
@@ -175,7 +177,11 @@ if __name__ == '__main__':
                     )
                     db.session.add(seat)
 
-        # Create a movie showtime for the rooms over 7 days
+        showtime_for_room_over_days = current_app.config['SHOWTIME_FOR_ROOM_OVER_DAYS']
+        if not showtime_for_room_over_days:
+            db.session.commit()
+            return
+
         room_objs = Room.query.all()
         now = datetime.now()
         start_schedule = now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
@@ -184,7 +190,7 @@ if __name__ == '__main__':
         for room in room_objs:
             current_time = start_schedule
 
-            for day_offset in range(7):
+            for day_offset in range(showtime_for_room_over_days):
                 if day_offset > 0:
                     current_time = (start_schedule + timedelta(days=day_offset)).replace(hour=8, minute=0)
 
@@ -203,4 +209,11 @@ if __name__ == '__main__':
 
                     current_time = end_time + timedelta(minutes=30)
 
-        db.session.commit()
+    db.session.commit()
+
+
+if __name__ == '__main__':
+    cfg_name = os.environ.get('APP_ENV', 'dev')
+    app = create_app(cfg_name)
+    with app.app_context():
+        init_database()

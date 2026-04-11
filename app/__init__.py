@@ -1,5 +1,3 @@
-import os
-
 import redis
 import stripe
 from flask import Flask, jsonify
@@ -16,15 +14,12 @@ login_manager = LoginManager()
 cache = Cache()
 
 
-def create_app():
+def create_app(cfg_name):
     app = Flask(__name__)
 
-    env_name = os.environ.get('APP_ENV', 'dev')
-
-    cfg = configs.get(env_name)
-
+    cfg = configs[cfg_name]
     app.config.from_object(cfg)
-
+    
     cfg.init_app(app)
     db.init_app(app=app)
     login_manager.init_app(app=app)
