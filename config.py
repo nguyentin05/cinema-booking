@@ -50,7 +50,7 @@ class TestConfig(Config):
 
 class TestV2Config(Config):
     TESTING = True
-    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///:memory:")
+    SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI")
     PAGE_SIZE = 4
 
 

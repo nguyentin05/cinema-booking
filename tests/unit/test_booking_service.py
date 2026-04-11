@@ -173,6 +173,7 @@ class TestBookingSeats:
         with pytest.raises(Exception, match="error"):
             BookingService.booking_seats(1, valid_showtime.id, [s1.id])
 
+        mock_db.session.commit.assert_called_once()
         mock_db.session.rollback.assert_called_once()
 
 
