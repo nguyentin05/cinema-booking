@@ -1,5 +1,5 @@
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
 import pytest
 from werkzeug.exceptions import NotFound, Conflict
@@ -61,6 +61,16 @@ def mocker_seat_dao(mocker, mock_seats):
     return dao
 
 
+@pytest.fixture
+def mock_booking():
+    b = MagicMock(id=1, user_id=USER_ID, showtime_id=SHOWTIME_ID)
+    b.seats_data = [
+        {"id": 1, "name": "A1"},
+        {"id": 2, "name": "A2"}
+    ]
+    return b
+
+
 class TestGetSeatsOfShowtime:
     def test_showtime_not_found(self, mocker):
         mock_query = mocker.patch("app.services.seat_service.Showtime.query")
@@ -98,15 +108,6 @@ class TestGetSeatsOfShowtime:
 
 
 class TestHoldSeats:
-    @pytest.fixture
-    def mock_booking(self):
-        b = MagicMock(id=1, user_id=USER_ID, showtime_id=SHOWTIME_ID)
-        b.seats_data = [
-            {"id": 1, "name": "A1"},
-            {"id": 2, "name": "A2"}
-        ]
-        return b
-
     def test_hold_seats_success(self, mocker_redis, mock_booking):
         pipe = mocker_redis.pipeline.return_value
         pipe.execute.return_value = [True, True, True]
@@ -137,3 +138,15 @@ class TestHoldSeats:
             SeatService.hold_seat_for_booking(mock_booking)
 
         mocker_redis.delete.assert_any_call(f"hold:showtime:{SHOWTIME_ID}:seat:1", f"hold:user:{USER_ID}:booking_id")
+
+
+class TestDeleteHoldSeatsOfBooking:
+    def test_delete_success(self, mocker_redis, mock_booking):
+        SeatService.delete_hold_seats_of_booking(mock_booking)
+
+        expected_calls = [
+            call(f"hold:user:{mock_booking.user_id}:booking_id"),
+            call(*[f"hold:showtime:{mock_booking.showtime_id}:seat:{seat['id']}" for seat in mock_booking.seats_data])
+        ]
+
+        mocker_redis.delete.assert_has_calls(expected_calls, any_order=False)

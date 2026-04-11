@@ -1,3 +1,5 @@
+import io
+
 import pytest
 
 from app.daos import user_dao
@@ -49,13 +51,41 @@ class TestGetUserById:
 
 
 class TestAddUser:
-
     def test_add_user_success(self, valid_user_payload, db_session):
         user = user_dao.add_user(**valid_user_payload)
 
         assert user.id is not None
         assert user.email == valid_user_payload['email']
         assert user.name == valid_user_payload['name']
+
+    def test_success_with_avatar(self, valid_user_payload, mocker, db_session):
+        mock_upload = mocker.patch("app.daos.user_dao.cloudinary.uploader.upload")
+        mock_upload.return_value = {
+            "secure_url": "https://res.cloudinary.com/datah8lgd/image/upload/v1773747273/images_patu6r.png"}
+
+        avatar_file = io.BytesIO(b"fake image data")
+        valid_user_payload["avatar"] = avatar_file
+
+        user = user_dao.add_user(**valid_user_payload)
+        assert user.avatar == "https://res.cloudinary.com/datah8lgd/image/upload/v1773747273/images_patu6r.png"
+        mock_upload.assert_called_once_with(avatar_file)
+
+    def test_raise_db_error(self, mocker, db_session, valid_user_payload):
+        mocker.patch.object(db_session, 'commit', side_effect=Exception("Database Connection Dead"))
+        mock_rollback = mocker.patch.object(db_session, 'rollback')
+        mock_logger = mocker.patch("app.daos.user_dao.current_app.logger.error")
+
+        with pytest.raises(Exception, match="Database Connection Dead"):
+            user_dao.add_user(**valid_user_payload)
+
+        mock_rollback.assert_called_once()
+        mock_logger.assert_called_once()
+
+    def test_raise_error_with_email_gt_255(self, valid_user_payload, db_session):
+        valid_user_payload['email'] = "x" * 255 + "@gmail.com"
+
+        with pytest.raises(ValueError, match="Email must be less than or equal 255 characters"):
+            user = user_dao.add_user(**valid_user_payload)
 
     def test_add_user_email_exists(self, existing_user, valid_user_payload, db_session):
         valid_user_payload['email'] = existing_user.email
@@ -104,7 +134,6 @@ class TestAddUser:
 
 
 class TestAuthUser:
-
     def test_auth_success(self, existing_user):
         u = user_dao.auth_user(
             email=existing_user.email,
