@@ -1,10 +1,13 @@
+import secrets
 from abc import ABC, abstractmethod
 from datetime import datetime
 
 import stripe.checkout
 from flask import current_app
+from werkzeug.exceptions import BadRequest
 
-from app import db
+from app import db, cache
+from app.exceptions import BookingHasExpired, BookingHasCancelled
 from app.models import Booking, BookingStatus, Ticket
 from app.services.seat_service import SeatService
 
@@ -14,10 +17,13 @@ class PaymentService(ABC):
     def _validate_booking(booking_id):
         booking = Booking.query.get(booking_id)
         if not booking:
-            raise ValueError("This booking do not exists")
+            raise BadRequest("This booking do not exists")
 
-        if booking.expires_at <= datetime.now() or booking.status == BookingStatus.CANCELLED:
-            raise ValueError("This booking has expired.")
+        if booking.expires_at <= datetime.now():
+            raise BookingHasExpired()
+
+        if booking.status == BookingStatus.CANCELLED:
+            raise BookingHasCancelled()
 
         return booking
 
@@ -27,6 +33,39 @@ class PaymentService(ABC):
 
     @abstractmethod
     def process(self, booking, **kwargs):
+        pass
+
+    def handle_callback(self, booking_id, **kwargs):
+        try:
+            booking = PaymentService._validate_booking(booking_id)
+        except (BookingHasExpired, BookingHasCancelled):
+            self.handle_expired_or_cancelled_booking(booking_id, **kwargs)
+            return
+        except Exception:
+            raise
+
+        booking.status = BookingStatus.PAID
+        tickets = []
+        for seat_data in booking.seats_data:
+            tickets.append(Ticket(
+                booking_id=booking.id,
+                seat_id=seat_data['id'],
+                price=seat_data['price'],
+                secret_code=secrets.token_urlsafe(16)
+            ))
+
+        db.session.add_all(tickets)
+
+        try:
+            db.session.commit()
+            SeatService.delete_hold_seats_of_booking(booking)
+            cache.delete(f"count_active_tickets_of_user:user_id:{booking.user_id}")
+        except Exception:
+            db.session.rollback()
+            raise
+
+    @abstractmethod
+    def handle_expired_or_cancelled_booking(self, booking_id, **kwargs):
         pass
 
 
@@ -65,43 +104,24 @@ class StripePaymentService(PaymentService):
             event = stripe.Webhook.construct_event(payload, sig_header, webhook_secret)
             return event
         except ValueError:
-            raise ValueError("Invalid payload")
+            raise BadRequest("Invalid payload")
         except stripe.error.SignatureVerificationError:
-            raise ValueError("Invalid signature")
+            raise BadRequest("Invalid signature")
 
-    @staticmethod
-    def handle_expired_booking(booking, session):
+    def handle_expired_or_cancelled_booking(self, booking_id, **kwargs):
+        session = kwargs.get('session')
         stripe.Refund.create(payment_intent=session.payment_intent)
-        if booking.status == BookingStatus.PENDING:
-            booking.status = BookingStatus.CANCELLED
 
-        try:
-            db.session.commit()
-        except Exception:
-            db.session.rollback()
-            raise
-
-    @staticmethod
-    def handle_successful_payment(session):
-        data = session.metadata
-        if not data:
-            raise ValueError("Missing metadata")
-
-        booking = Booking.query.get(data.booking_id)
-        if booking.expires_at <= datetime.now() or booking.status == BookingStatus.CANCELLED:
-            StripePaymentService.handle_expired_booking(booking, session)
+        booking_status = db.session.query(Booking.status).filter(Booking.id == booking_id).scalar()
+        if booking_status == BookingStatus.CANCELLED:
             return
 
-        tickets = [
-            Ticket(booking_id=booking.id, seat_id=seat['id'], price=seat['price'])
-            for seat in booking.seats_data
-        ]
-        db.session.add_all(tickets)
-        booking.status = BookingStatus.PAID
+        Booking.query.filter(Booking.id == booking_id).update({
+            'status': BookingStatus.CANCELLED.name
+        })
 
         try:
             db.session.commit()
-            SeatService.delete_hold_seats_of_booking(booking)
         except Exception:
             db.session.rollback()
             raise

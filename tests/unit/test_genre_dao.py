@@ -31,6 +31,11 @@ def sample_data(db_session):
     return res
 
 
+def test_empty_genres(db_session):
+    genres = genre_dao.get_genres()
+    assert len(genres) == 0
+
+
 def test_success(sample_data):
     genres = genre_dao.get_genres()
 
