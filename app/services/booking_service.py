@@ -1,10 +1,11 @@
 from datetime import datetime, timedelta
 
 from flask import current_app
+from werkzeug.exceptions import NotFound, BadRequest, Conflict, Forbidden
 
 from app import db
 from app.daos import seat_dao, booking_dao
-from app.models import Ticket, Booking, Showtime, BookingStatus
+from app.models import Ticket, Booking, Showtime, BookingStatus, TicketStatus
 from app.services.seat_service import SeatService
 from app.utils import get_redis
 
@@ -14,15 +15,20 @@ class BookingService:
     def booking_seats(user_id, showtime_id, seat_ids):
         showtime = Showtime.query.get(showtime_id)
         if not showtime:
-            raise ValueError("This showtime do not exist")
+            raise NotFound("This showtime do not exist")
+
+        redis_client = get_redis()
+        existing_booking_id = redis_client.get(f"hold:user:{user_id}:booking_id")
+        if existing_booking_id:
+            raise Conflict(f"You have an existing unpaid booking_id: {existing_booking_id}")
 
         now = datetime.now()
         if showtime.start_at <= now:
-            raise ValueError("Showtime has already started")
+            raise BadRequest("Showtime has already started")
 
         max_booking = current_app.config.get("MAX_BOOKING_SEAT_EACH_SHOWTIME")
         if len(seat_ids) > max_booking:
-            raise ValueError(f"You can only book a maximum of {max_booking} seats per showtime.")
+            raise BadRequest(f"You can only book a maximum of {max_booking} seats per showtime.")
 
         seats_map = {seat.id: seat for seat in seat_dao.get_seats_by_ids(seat_ids)}
 
@@ -32,12 +38,11 @@ class BookingService:
             .filter(
                 Booking.showtime_id == showtime_id,
                 Ticket.seat_id.in_(seat_ids),
-                Ticket.is_active.is_(True)
+                Ticket.status != TicketStatus.CANCELLED
             )
             .all()
         )
 
-        redis_client = get_redis()
         hold_seat_keys = [f"hold:showtime:{showtime_id}:seat:{id}" for id in seat_ids]
         hold_seat_values = redis_client.mget(hold_seat_keys)
         hold_seat_ids = [int(id) for id in hold_seat_values if id is not None]
@@ -48,19 +53,19 @@ class BookingService:
                 f"{seats_map[s_id].seat_row}{seats_map[s_id].seat_number}" for s_id in conflict_seat_ids
             ]
             seats_str = ", ".join(booked_seat_names)
-            raise ValueError(f"The following seats are already booked: {seats_str}")
+            raise Conflict(f"The following seats are already booked: {seats_str}")
 
         already_booked_seats = booking_dao.count_booked_seats_by_user(user_id=user_id, showtime_id=showtime_id)
 
         if already_booked_seats + len(seat_ids) > max_booking:
-            raise ValueError(f"You can only book a maximum of {max_booking} seats per showtime.")
+            raise BadRequest(f"You can only book a maximum of {max_booking} seats per showtime.")
 
         s_id_not_in_room = [
             s_id for s_id in seat_ids
             if s_id not in seats_map or seats_map[s_id].room_id != showtime.room_id
         ]
         if s_id_not_in_room:
-            raise ValueError(f"Seat ids: {s_id_not_in_room} not in this room")
+            raise BadRequest(f"Seat ids: {s_id_not_in_room} not in this room")
 
         # After validate successfully create booking and tickets
         booking_expiration_time = current_app.config.get("BOOKING_EXPIRATION_TIME")
@@ -94,10 +99,10 @@ class BookingService:
     def cancel_booking(user_id, booking_id):
         booking = Booking.query.get(booking_id)
         if not booking:
-            raise ValueError("This booking does not exist")
+            raise NotFound("This booking does not exist")
 
         if booking.user_id != user_id:
-            raise PermissionError("You are not allowed to cancel this booking")
+            raise Forbidden("You are not allowed to cancel this booking")
 
         booking.status = BookingStatus.CANCELLED
 

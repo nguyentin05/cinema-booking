@@ -1,16 +1,16 @@
 from sqlalchemy import func
 
 from app import db
-from app.models import Ticket, Booking
+from app.models import Ticket, Booking, TicketStatus
 
 
-def count_tickets_of_user(user_id):
+def count_active_tickets_of_user(user_id):
     res = (
         db.session.query(func.count(Ticket.id))
         .join(Booking, Ticket.booking_id == Booking.id)
         .filter(
             Booking.user_id == user_id,
-            Ticket.is_active.is_(True))
+            Ticket.status == TicketStatus.ACTIVE)
         .scalar()
     )
 

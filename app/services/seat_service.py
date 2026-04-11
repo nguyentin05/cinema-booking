@@ -1,9 +1,10 @@
 from flask import current_app
+from werkzeug.exceptions import NotFound, Conflict
 
 from app import db
 from app.daos import seat_dao
 from app.dtos import SeatDTO
-from app.models import Showtime, Ticket, Booking
+from app.models import Showtime, Ticket, Booking, TicketStatus
 from app.utils import get_redis
 
 
@@ -12,13 +13,13 @@ class SeatService:
     def get_seats_of_showtime(showtime_id):
         showtime = Showtime.query.get(showtime_id)
         if not showtime:
-            raise ValueError("Showtime does not exist")
+            raise NotFound("Showtime does not exist")
 
         booked_seat_ids = (db.session.query(Ticket.seat_id).join(
             Booking, Ticket.booking_id == Booking.id
         ).filter(
             Booking.showtime_id == showtime_id,
-            Ticket.is_active.is_(True)
+            Ticket.status != TicketStatus.CANCELLED
         ).all())
         booked_seat_ids = {row[0] for row in booked_seat_ids}
 
@@ -77,7 +78,7 @@ class SeatService:
                 redis_client.delete(*keys_to_delete)
 
             if not user_key_success:
-                raise ValueError("You already have a pending booking in progress. Please complete or cancel it first.")
+                raise Conflict("You already have a pending booking in progress. Please complete or cancel it first.")
 
             failed_seats = [
                 seat['name']
@@ -85,7 +86,7 @@ class SeatService:
                 if not success
             ]
             seats_str = ", ".join(failed_seats)
-            raise ValueError(f"Seats are no longer available: {seats_str}")
+            raise Conflict(f"Seats are no longer available: {seats_str}")
 
     @staticmethod
     def delete_hold_seats_of_booking(booking):
