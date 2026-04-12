@@ -148,7 +148,7 @@ class TestStripePaymentService:
     def test_verify_event_invalid_payload(self, mock_stripe):
         mock_stripe.Webhook.construct_event.side_effect = ValueError()
         with pytest.raises(BadRequest, match="Invalid payload"):
-            StripePaymentService.verify_event(b"data", "sig", "ximofam_secret")
+            StripePaymentService.verify_event(b"data", "sig", "my_secret")
 
     def test_verify_event_invalid_signature(self, mocker):
         mocker.patch(
@@ -156,7 +156,7 @@ class TestStripePaymentService:
             side_effect=stripe.error.SignatureVerificationError("Invalid signature", "sig"))
 
         with pytest.raises(BadRequest, match="Invalid signature"):
-            StripePaymentService.verify_event(b"data", "sig", "ximofam_secret")
+            StripePaymentService.verify_event(b"data", "sig", "my_secret")
 
     def test_handle_expired_booking_with_refund(self, mocker, mock_stripe, mock_db):
         mock_db.session.query.return_value.filter.return_value.scalar.return_value = BookingStatus.PENDING
