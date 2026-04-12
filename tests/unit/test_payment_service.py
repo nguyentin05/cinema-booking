@@ -11,7 +11,7 @@ from app.services.payment_service import PaymentService, StripePaymentService, P
 
 
 @pytest.fixture(autouse=True)
-def app_ctx(init_db):
+def app_ctx(test_app):
     pass
 
 
@@ -86,7 +86,7 @@ class TestPaymentServiceBase:
 
         mock_db.session.commit.assert_called_once()
         mock_seat_service.delete_hold_seats_of_booking.assert_called_once_with(sample_booking)
-        mock_cache.delete.assert_called_once_with(f"count_active_tickets_of_user:user_id:10")
+        mock_cache.delete.assert_called_once_with(f"count_active_tickets_of_user:user_id:{sample_booking.user_id}")
 
     @pytest.mark.parametrize("exception_type", [
         BookingHasExpired(),
@@ -133,7 +133,7 @@ class TestStripePaymentService:
 
     def test_process_creates_session(self, mock_stripe, sample_booking):
         mock_session = MagicMock()
-        mock_session.client_secret = "ximofam_secret_123"
+        mock_session.client_secret = "my_secret"
         mock_stripe.checkout.Session.create.return_value = mock_session
 
         service = StripePaymentService()
