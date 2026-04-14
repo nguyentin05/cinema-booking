@@ -16,7 +16,7 @@ packaging==26.0
 pluggy==1.6.0
 Pygments==2.19.2
 PyMySQL==1.1.2
-pytest==9.0.2
+pytest==9.0.3
 pytest-cov==7.1.0
 python-dotenv==1.2.2
 six==1.17.0
