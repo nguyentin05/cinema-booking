@@ -5,13 +5,12 @@ on:
     branches: [ "staging" ]
   pull_request:
     branches: [ "staging" ]
-  workflow_dispatch: # Cho phép bấm nút chạy tay trên giao diện Github
+  workflow_dispatch:
 
 env:
   IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/flask-app
 
 jobs:
-  # 1. Chạy Integration Test (Code Logic & DB)
   integration-test:
     name: 1. Integration Test
     runs-on: ubuntu-latest
@@ -28,10 +27,6 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements/base.txt -r requirements/prod.txt
-
-      # Nếu nhóm có dùng Docker Compose cho Database thật, hãy uncomment 2 dòng dưới:
-      # - name: Start Database (Optional)
-      #   run: docker-compose -f docker-compose.db.yml up -d
 
       - name: Run Pytest Integration
         run: |
@@ -52,14 +47,11 @@ jobs:
           path: test-results.xml
           retention-days: 1
 
-  # 2. Xanh bài Integration mới cho Build & Push lên Dockerhub
   build-and-push:
     name: 2. Build & Push Docker Image
     runs-on: ubuntu-latest
-    needs: [ integration-test ] # BẮT BUỘC CHỜ TEST PASS
-    # Tạm thời comment dòng if dưới lại để bạn thoải mái test Pipeline trong lúc PR. 
-    # Khi nào hoàn thiện luồng thì mở comment ra để nó chặn Push Image lôm côm nhé.
-    # if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    needs: [ integration-test ]
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     
     steps:
       - uses: actions/checkout@v4
@@ -85,7 +77,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # 3. Kéo chính cái Image vừa Push về để chạy Performance Test ảo ở Localhost
   performance-test-ephemeral:
     name: 3. Ephemeral Performance Test
     runs-on: ubuntu-latest
@@ -104,25 +95,12 @@ jobs:
 
       - name: Spin up Ephemeral Environment (Local Staging)
         run: |
-          echo "🚀 Khởi động Docker Container từ Image vừa build..."
-          docker run -d --name cinema-app -p 5000:5000 \
-            -e FLASK_ENV=testing \
-            ${{ env.IMAGE_NAME }}:staging
-
-          echo "⏳ Chờ Server khởi động và sẵn sàng..."
+          docker run -d --name cinema-app -p 5000:5000 -e FLASK_ENV=testing ${{ env.IMAGE_NAME }}:staging
           timeout 60 bash -c 'until curl -s http://localhost:5000/ || curl -s http://localhost:5000/api/movies; do sleep 2; done'
-          echo "✅ Ephemeral Server đã lên mạng tại localhost:5000"
 
       - name: Run Locust Performance Test
         run: |
-          locust --headless \
-            --users 50 \
-            --spawn-rate 5 \
-            --run-time 60s \
-            --host http://localhost:5000 \
-            --html performance-report.html \
-            --csv performance-results.csv \
-            -f performance-test/locustfile.py
+          locust --headless --users 50 --spawn-rate 5 --run-time 60s --host http://localhost:5000 --html performance-report.html --csv performance-results.csv -f performance-test/locustfile.py
 
       - name: Upload Performance Report
         uses: actions/upload-artifact@v4
@@ -138,7 +116,6 @@ jobs:
         if: failure()
         run: docker logs cinema-app
 
-  # 4. Gộp Báo cáo (Summary)
   pipeline-summary:
     name: 4. Staging Pipeline Summary
     runs-on: ubuntu-latest
@@ -155,4 +132,3 @@ jobs:
           echo "| 2. Cấp quyền Build Image | Bỏ qua (Chỉ chạy khi Push) |" >> $GITHUB_STEP_SUMMARY
           echo "| 3. Performance Test | ${{ needs.performance-test-ephemeral.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Quy trình kết thúc. Nếu Full Xanh ✅ -> Tester có thể Pull Image 'staging' về máy local để test Postman." >> $GITHUB_STEP_SUMMARY
