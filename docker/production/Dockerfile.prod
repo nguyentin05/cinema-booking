@@ -1,0 +1,32 @@
+FROM python:3.13-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends build-essential pkg-config default-libmysqlclient-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /venv
+ENV PATH="/venv/bin:$PATH"
+
+COPY requirements/ requirements/
+RUN --mount=type=cache,target=/root/.cache/pip \
+    pip install -r requirements/base.txt -r requirements/prod.txt
+
+FROM python:3.13-slim AS runner
+
+WORKDIR /app
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libmariadb3 && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /venv /venv
+ENV PATH="/venv/bin:$PATH"
+COPY . .
+
+ENV FLASK_ENV=production
+
+EXPOSE 5000
+
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
