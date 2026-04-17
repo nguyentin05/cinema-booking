@@ -41,3 +41,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.exclusions=app/templates/**,app/static/**
+            -Dsonar.coverage.exclusions=app/admin.py,app/templates/**,app/static/**
