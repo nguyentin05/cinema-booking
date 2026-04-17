@@ -1,5 +1,10 @@
 const showtime_id = window.location.pathname.split('/').filter(Boolean).pop();
 const selectedSeats = [];
+const elAlreadyBookedSeats = document.getElementById('already_booked_seats');
+let selectedSeatsCount = 0;
+if (elAlreadyBookedSeats) {
+    selectedSeatsCount = parseInt(elAlreadyBookedSeats.textContent, 10) || 0;
+}
 
 document.querySelector('.seating-wrapper').addEventListener('click', function(e) {
     const seatEl = e.target.closest('.available-seat');
@@ -15,21 +20,27 @@ document.querySelector('.seating-wrapper').addEventListener('click', function(e)
 
     if (seatIndex > -1) {
         selectedSeats.splice(seatIndex, 1);
+        selectedSeatsCount--;
 
         seatEl.classList.remove('bg-primary', 'opacity-50');
         const bgClasses = originalBg.split(' ');
         seatEl.classList.add(...bgClasses);
     } else {
-        selectedSeats.push({
-            id: seatId,
-            name: seatName,
-            type: seatType,
-            price: parseFloat(seatPrice)
-        });
+        if (selectedSeatsCount >= 8) {
+            alert("You can only book a maximum of 8 seats per showtime.")
+        } else {
+            selectedSeats.push({
+                id: seatId,
+                name: seatName,
+                type: seatType,
+                price: parseFloat(seatPrice)
+            });
+             selectedSeatsCount++;
 
-        const bgClasses = originalBg.split(' ');
-        seatEl.classList.remove(...bgClasses);
-        seatEl.classList.add('bg-primary', 'opacity-50');
+            const bgClasses = originalBg.split(' ');
+            seatEl.classList.remove(...bgClasses);
+            seatEl.classList.add('bg-primary', 'opacity-50');
+        }
     }
 
     renderSidebar();
@@ -89,16 +100,51 @@ function renderSidebar() {
             <h5 class="fw-bold mb-0">Tổng tiền</h5>
             <h4 class="fw-bold mb-0 text-dark">${totalPrice.toLocaleString('vi-VN')} VND</h4>
         </div>
-        <button onclick="proceedToCheckout()" class="btn btn-success w-100 py-3 fw-bold rounded-3">
-            TIẾP TỤC
+        <button onclick="submitBooking()" class="btn btn-success w-100 py-3 fw-bold rounded-3">
+            Đặt ghế
         </button>
     `;
 }
 
-function proceedToCheckout() {
-    const seatIds = selectedSeats.map(s => s.id);
-    console.log("Chuẩn bị gọi API giữ chỗ cho các ghế ID:", seatIds);
-    // Chuyển trang hoặc gọi API giữ chỗ (HOLDING) ở đây...
+async function submitBooking() {
+    if (!selectedSeats || selectedSeats.length === 0) {
+        alert("Vui lòng chọn ít nhất 1 ghế trước khi đặt!");
+        return;
+    }
+
+    try {
+        const btn = document.querySelector('button[onclick="submitBooking()"]');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+        btn.disabled = true;
+
+        const response = await fetch("/api/bookings", {
+            method: "POST",
+            credentials: "include",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                showtime_id: showtime_id,
+                seat_ids: selectedSeats.map(s => s.id)
+            })
+        });
+
+        const data = await response.json();
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+
+        if (response.ok) {
+            openPaymentModal(data)
+        } else {
+            throw new Error(data.message || data.error);
+        }
+
+    } catch (err) {
+        console.error("Lỗi đặt vé:", err);
+        alert(err.message || "Không thể kết nối đến máy chủ. Vui lòng kiểm tra lại mạng!");
+    }
 }
+
 
 renderSidebar();

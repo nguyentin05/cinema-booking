@@ -2,32 +2,30 @@ from datetime import timedelta, date
 
 import pytest
 
-from app import db
 from app.daos import genre_dao, movie_dao
 from app.models import Genre, Movie
 
 
 @pytest.fixture
-def sample_data(test_app):
+def sample_data(db_session):
     g1 = Genre(name="Action")
     g2 = Genre(name="Comedy")
     genres = [g1, g2]
-    db.session.add_all(genres)
-    db.session.commit()
+
+    db_session.add_all(genres)
+    db_session.flush()
 
     today = date.today()
     m1 = Movie(title="Batman", duration_minutes=100, release_date=today - timedelta(days=1), is_active=True,
                genres=[g1])
     m2 = Movie(title="Avenger Infinity War", duration_minutes=100, release_date=today + timedelta(days=5),
-               is_active=True,
-               genres=[g1, g2])
+               is_active=True, genres=[g1, g2])
     m3 = Movie(title="Avenger Endgame", duration_minutes=100, release_date=today - timedelta(days=10), is_active=False,
                genres=[g2])
 
     movies = [m1, m2, m3]
-    db.session.add_all(movies)
-
-    db.session.commit()
+    db_session.add_all(movies)
+    db_session.commit()
 
     return genres, movies
 
@@ -38,6 +36,18 @@ def test_create_sample_data(sample_data):
 
     assert len(sample_data[0]) == len(genres)
     assert paginate.total == 2
+
+
+def test_get_movie_by_id(sample_data):
+    genres, movies = sample_data
+
+    m1_id = movies[0].id
+    available_movie = movie_dao.get_movie(m1_id)
+
+    assert available_movie is not None
+    assert available_movie.title == movies[0].title
+    assert available_movie.genres[0].name == genres[0].name
+    assert movie_dao.get_movie(72) is None
 
 
 def test_search_by_kw(sample_data):
@@ -53,7 +63,9 @@ def test_search_by_genre_id(sample_data):
     movies, _ = movie_dao.get_movies({"genre_id": g1.id})
 
     assert len(movies) == 2
-    assert m1.id == movies[0].id and m2.id == movies[1].id
+    
+    returned_ids = [m.id for m in movies]
+    assert m1.id in returned_ids and m2.id in returned_ids
 
     movies, _ = movie_dao.get_movies({"genre_id": g2.id})
 
@@ -63,6 +75,7 @@ def test_search_by_genre_id(sample_data):
 
 def test_search_by_status(sample_data):
     _, (m1, m2, _) = sample_data
+
     movies, _ = movie_dao.get_movies({"status": "is_showing"})
 
     assert len(movies) == 1

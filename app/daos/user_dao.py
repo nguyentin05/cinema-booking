@@ -2,8 +2,6 @@ import re
 
 import cloudinary.uploader
 from flask import current_app
-from sqlalchemy.exc import DatabaseError
-from werkzeug.exceptions import InternalServerError
 
 from app import db
 from app.models import User
@@ -30,17 +28,20 @@ def add_user(email, password, name, avatar):
     db.session.add(user)
     try:
         db.session.commit()
-    except DatabaseError as ex:
+    except Exception as ex:
         db.session.rollback()
         current_app.logger.error(str(ex))
-        raise InternalServerError()
+        raise
 
     return user
 
 
 def auth_user(email: str, password: str):
-    _validate_email(email)
-    _validate_password(password)
+    try:
+        _validate_email(email)
+        _validate_password(password)
+    except Exception:
+        raise ValueError("Incorrect email or password")
 
     user = User.query.filter(User.email == email).first()
     if not user or not user.verify_password(password):

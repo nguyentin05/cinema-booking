@@ -1,0 +1,77 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}My tickets{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/ticket.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <h4 class="fw-semibold mb-4">Lịch sử đặt vé</h4>
+
+  <!-- Filter -->
+  <div class="d-flex gap-2 mb-4" id="filterContainer">
+    <button class="btn btn-primary btn-sm" data-filter="ACTIVE">Chưa dùng</button>
+    <button class="btn btn-outline-secondary btn-sm" data-filter="USED">Đã xem</button>
+    <button class="btn btn-outline-secondary btn-sm" data-filter="CANCELLED">Đã hủy</button>
+  </div>
+
+  <!-- Ticket list -->
+  <div class="d-flex flex-column gap-3" id="ticketList"></div>
+</div>
+
+<!-- Modal QR -->
+<div class="modal fade" id="qrModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-semibold">Mã QR vé</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body text-center py-4">
+        <div id="qr-img-wrapper"></div>
+        <p class="text-muted small mt-3 mb-0" id="qr-seat-label"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal xác nhận hủy -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-semibold">Xác nhận hủy vé</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body pt-1">
+        <p class="text-muted small mb-1">Bạn muốn hủy vé xem <strong id="modal-movie"></strong>, ghế <strong
+                id="modal-seat"></strong>?</p>
+        <p class="text-danger small mb-0">Tiền sẽ được hoàn trong 5–10 ngày làm việc.</p>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-sm btn-light" data-bs-dismiss="modal">Quay lại</button>
+        <button class="btn btn-sm btn-danger" id="confirm-cancel-btn">
+          <span class="spinner-border spinner-border-sm me-1 d-none" id="cancel-spinner"></span>
+          Xác nhận hủy
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999">
+  <div id="toast" class="toast text-white border-0" role="alert">
+    <div class="d-flex">
+      <div class="toast-body fw-medium" id="toast-msg"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js %}
+<script src="{{ url_for('static', filename='js/ticket.js') }}"></script>
+{% endblock %}

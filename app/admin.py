@@ -7,8 +7,9 @@ from markupsafe import Markup
 from wtforms import FileField
 
 from app import db
-from app.daos import seat_dao, showtime_dao
+from app.daos import showtime_dao
 from app.models import Movie, Room, Seat, Showtime, PriceRule, SeatType
+from app.services.seat_service import SeatService
 
 
 class AdminView(ModelView):
@@ -87,7 +88,7 @@ class ShowtimeView(AdminView):
         if not showtime:
             return redirect(self.get_url('.index_view'))
         room = showtime.room
-        seats = seat_dao.get_seats_of_showtime(showtime_id)
+        seats = SeatService.get_seats_of_showtime(showtime_id)
 
         seating_matrix = {}
         for seat in seats:

@@ -1,9 +1,8 @@
 <nav class="navbar navbar-expand-sm navbar-dark bg-dark">
     <div class="container">
-
         <a class="navbar-brand" href="/">Movie</a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#genreNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
 
@@ -13,7 +12,8 @@
                 <li class="nav-item me-3 d-flex align-items-center">
                     <select id="genreSelect"
                             class="form-select form-select-sm bg-dark text-white border-secondary"
-                            style="min-width: 180px;">
+                            style="min-width: 180px;"
+                            onchange="window.location.href='/?genre_id='+this.value">
                         <option value="">Genres</option>
                         {% for g in genres %}
                         <option value="{{ g.id }}"
@@ -25,29 +25,49 @@
                 </li>
             </ul>
 
-            <form method="get" action="/" class="d-flex">
+            <form method="get" action="/" class="d-flex me-4">
                 <input class="form-control me-2" type="text" placeholder="Keyword" name="kw"/>
                 <button class="btn btn-primary" type="submit">Search</button>
             </form>
+
+            <ul class="navbar-nav align-items-center">
+                {% if current_user.is_authenticated %}
+
+                <li class="nav-item me-3 mt-2 mt-sm-0">
+                    <a href="/ticket/me" type="button" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-ticket" viewBox="0 0 16 16">
+                            <path d="M0 4.5A1.5 1.5 0 0 1 1.5 3h13A1.5 1.5 0 0 1 16 4.5V6a.5.5 0 0 1-.5.5 1.5 1.5 0 0 0 0 3 .5.5 0 0 1 .5.5v1.5a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 0 11.5V10a.5.5 0 0 1 .5-.5 1.5 1.5 0 1 0 0-3A.5.5 0 0 1 0 6zM1.5 4a.5.5 0 0 0-.5.5v1.05a2.5 2.5 0 0 1 0 4.9v1.05a.5.5 0 0 0 .5.5h13a.5.5 0 0 0 .5-.5v-1.05a2.5 2.5 0 0 1 0-4.9V4.5a.5.5 0 0 0-.5-.5z"></path>
+                        </svg>
+                        {% if ticket_count %}
+                        <span class="badge rounded-pill text-bg-danger">
+                            {{ ticket_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+                </li>
+
+                <li class="nav-item me-3 mt-2 mt-sm-0">
+                    <a class="nav-link p-0" href="/profile">
+                        <img src="{{ current_user.avatar }}" class="rounded-circle border border-1 border-secondary" width="40" height="40" style="object-fit: cover;"/>
+                    </a>
+                </li>
+
+                <li class="nav-item mt-2 mt-sm-0">
+                    <a class="btn btn-outline-danger btn-sm" href="{{ url_for('auth.logout') }}">Logout</a>
+                </li>
+
+                {% else %}
+
+                <li class="nav-item me-2 mt-2 mt-sm-0">
+                    <a class="btn btn-outline-light btn-sm" href="{{ url_for('auth.login', next='/') }}">Login</a>
+                </li>
+                <li class="nav-item mt-2 mt-sm-0">
+                    <a class="btn btn-success btn-sm" href="{{ url_for('auth.register') }}">Register</a>
+                </li>
+
+                {% endif %}
+            </ul>
+
         </div>
-
     </div>
-
-    {% if current_user.is_authenticated %}
-    <li class="nav-item">
-        <a class="nav-link text-danger" href="/">
-            <img src="{{ current_user.avatar }}" class="rounded-circle" width="40"/>
-        </a>
-    </li>
-    <li class="nav-item">
-        <a class="btn btn-danger" href="{{ url_for('auth.logout') }}">Logout</a>
-    </li>
-    {% else %}
-    <li class="nav-item">
-        <a class="btn btn-danger" href="{{ url_for('auth.login', next='/') }}">Login</a>
-    </li>
-    <li class="nav-item">
-        <a class="btn btn-success" href="{{ url_for('auth.register') }}">Register</a>
-    </li>
-    {% endif %}
 </nav>

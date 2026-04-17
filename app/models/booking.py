@@ -1,6 +1,6 @@
 from enum import Enum as Enums
 
-from sqlalchemy import Column, Integer, ForeignKey, Float, Enum, DateTime
+from sqlalchemy import Column, Integer, ForeignKey, Float, Enum, DateTime, JSON
 from sqlalchemy.orm import relationship
 
 from app.models.base_model import BaseModel
@@ -14,6 +14,8 @@ class BookingStatus(Enums):
 
 class Booking(BaseModel):
     total_price = Column(Float, default=0)
+    total_seats = Column(Integer, nullable=False)
+    seats_data = Column(JSON, nullable=False)
     status = Column(Enum(BookingStatus), default=BookingStatus.PENDING)
     expires_at = Column(DateTime, nullable=False)
     paid_at = Column(DateTime, nullable=True)

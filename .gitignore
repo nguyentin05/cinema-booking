@@ -1,3 +1,7 @@
+.mutmut-cache
+mutants/
+mutmut-cicd-stats.json
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -36,7 +40,7 @@ MANIFEST
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Unit test / coverage reports
+# Unit tests / coverage reports
 htmlcov/
 .tox/
 .nox/
@@ -138,6 +142,7 @@ celerybeat.pid
 .env
 .envrc
 .venv
+.venv.*/
 env/
 venv/
 ENV/

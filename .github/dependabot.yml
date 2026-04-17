@@ -1,12 +1,13 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/"
+    directory: "/requirements"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Ho_Chi_Minh"
+    target-branch: "develop"
     open-pull-requests-limit: 3
     groups:
       flask-stack:
@@ -68,20 +69,23 @@ updates:
           - "patch"
     labels:
       - "dependencies"
+      - "develop"
     commit-message:
       prefix: "deps"
       include: "scope"
 
   - package-ecosystem: "docker"
-    directory: "/"
+    directory: "/docker/develop"
     schedule:
       interval: "weekly"
       day: "monday"
       time: "09:00"
       timezone: "Asia/Ho_Chi_Minh"
+    target-branch: "develop"
     open-pull-requests-limit: 1
     labels:
       - "dependencies"
+      - "develop"
     commit-message:
       prefix: "deps"
       include: "scope"
@@ -93,6 +97,7 @@ updates:
       day: "monday"
       time: "09:00"
       timezone: "Asia/Ho_Chi_Minh"
+    target-branch: "develop"
     open-pull-requests-limit: 2
     groups:
       actions:
@@ -103,6 +108,7 @@ updates:
           - "patch"
     labels:
       - "dependencies"
+      - "develop"
     commit-message:
       prefix: "deps"
       include: "scope"
