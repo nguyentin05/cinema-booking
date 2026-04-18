@@ -7,6 +7,6 @@ class CinemaUser(HttpUser):
     def index_page(self):
         self.client.get("/")
 
-    @task(2)
-    def get_movies(self):
-        self.client.get("/api/movies")
+    @task(1)
+    def get_showtimes(self):
+        self.client.get("/api/showtimes/")

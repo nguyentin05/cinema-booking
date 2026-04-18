@@ -94,8 +94,10 @@ jobs:
 
       - name: Spin up Ephemeral Environment (Local Staging)
         run: |
-          docker run -d --name cinema-app -p 5000:5000 -e FLASK_ENV=testing ${{ env.IMAGE_NAME }}:staging
-          timeout 60 bash -c 'until curl -s http://localhost:5000/ || curl -s http://localhost:5000/api/movies; do sleep 2; done'
+          docker run -d --name cinema-app -p 5000:5000 -e APP_ENV=dev ${{ env.IMAGE_NAME }}:staging
+          sleep 5
+          docker exec cinema-app python init_db.py
+          timeout 60 bash -c 'until curl -s http://localhost:5000/; do sleep 2; done'
 
       - name: Run Locust Performance Test
         run: |
