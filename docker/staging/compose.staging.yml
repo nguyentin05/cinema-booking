@@ -1,4 +1,17 @@
 services:
+  mysql-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: cinema
+      MYSQL_USER: cinema_user
+      MYSQL_PASSWORD: cinema_pass
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   redis:
     image: redis:latest
     healthcheck:
@@ -6,15 +19,22 @@ services:
       interval: 5s
       timeout: 3s
       retries: 5
- 
+
   app:
     image: ${IMAGE_NAME}:staging
     ports:
       - "5000:5000"
     environment:
-      - APP_ENV=dev
+      - APP_ENV=staging
+      - FLASK_HOST=0.0.0.0
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://cinema_user:cinema_pass@mysql-db:3306/cinema
       - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_PASSWORD=
     depends_on:
+      mysql-db:
+        condition: service_healthy
       redis:
         condition: service_healthy
     healthcheck:

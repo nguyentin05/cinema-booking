@@ -1,4 +1,5 @@
 from locust import HttpUser, task, between
+from datetime import date
 
 class CinemaUser(HttpUser):
     wait_time = between(1, 3)
@@ -9,4 +10,5 @@ class CinemaUser(HttpUser):
 
     @task(1)
     def get_showtimes(self):
-        self.client.get("/api/showtimes/")
+        today = date.today().strftime("%Y-%m-%d")
+        self.client.get(f"/api/showtimes/?movie_id=1&date={today}")
