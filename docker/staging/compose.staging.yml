@@ -1,0 +1,24 @@
+services:
+  redis:
+    image: redis:latest
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+ 
+  app:
+    image: ${IMAGE_NAME}:staging
+    ports:
+      - "5000:5000"
+    environment:
+      - APP_ENV=dev
+      - REDIS_HOST=redis
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 5000)); s.close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
