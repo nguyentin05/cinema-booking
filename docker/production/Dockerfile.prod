@@ -25,8 +25,9 @@ COPY --from=builder /venv /venv
 ENV PATH="/venv/bin:$PATH"
 COPY . .
 
-ENV FLASK_ENV=production
+ENV FLASK_ENV=staging
+ENV FLASK_HOST=0.0.0.0
 
 EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "run:app"]
+CMD ["python", "run.py"]
