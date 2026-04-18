@@ -94,8 +94,8 @@ jobs:
 
       - name: Spin up Ephemeral Environment
         run: |
-          docker compose -f docker/staging/docker-compose.staging.yml up -d --wait
-          docker compose -f docker/staging/docker-compose.staging.yml exec app python init_db.py
+          docker compose -f docker/staging/compose.staging.yml up -d --wait
+          docker compose -f docker/staging/compose.staging.yml exec app python init_db.py
         env:
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
 
@@ -109,7 +109,7 @@ jobs:
         
       - name: Dump Container Logs on Failure
         if: failure()
-        run: docker compose -f docker/staging/docker-compose.staging.yml logs
+        run: docker compose -f docker/staging/compose.staging.yml logs
 
       - name: Upload Performance Report
         uses: actions/upload-artifact@v4
