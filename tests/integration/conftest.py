@@ -1,13 +1,11 @@
 from app import login_manager
-import secrets
-from datetime import datetime, timedelta
 
 import fakeredis
 import pytest
 from sqlalchemy.pool import StaticPool
 
 from app import create_app, db
-from app.models import Booking, BookingStatus, Genre, Movie, PriceRule, Room, Seat, SeatType, Showtime, Ticket, TicketStatus, User
+from app.models import User
 
 @pytest.fixture(scope="module")
 def test_app():
