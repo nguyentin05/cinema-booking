@@ -1,5 +1,3 @@
-from flask import current_app
-
 from app import login_manager
 
 import fakeredis
@@ -38,14 +36,7 @@ def db_session(init_db):
 def redis_client(test_app):
     fake_redis_client = fakeredis.FakeRedis(decode_responses=True)
     test_app.extensions['redis'] = fake_redis_client
-    with test_app.app_context():
-        if 'cache' in current_app.extensions:
-            cache = current_app.extensions['cache']
-            if hasattr(cache.cache, '_write_client'):
-                cache.cache._write_client = fake_redis_client
-                cache.cache._read_client = fake_redis_client
-            elif hasattr(cache.cache, '_client'):
-                cache.cache._client = fake_redis_client
+
     yield fake_redis_client
     fake_redis_client.flushall()
 

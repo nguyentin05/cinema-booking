@@ -48,6 +48,7 @@ class TestConfig(Config):
     PAGE_SIZE = 4
     WTF_CSRF_ENABLED = False
     SESSION_PROTECTION = None
+    CACHE_TYPE = "SimpleCache"
 
 
 class StagingConfig(Config):
