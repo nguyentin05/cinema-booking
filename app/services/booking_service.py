@@ -17,6 +17,9 @@ class BookingService:
         if not showtime:
             raise NotFound("This showtime do not exist")
 
+        if not seat_ids:
+            raise BadRequest("You must select at least one seat.")
+
         redis_client = get_redis()
         existing_booking_id = redis_client.get(f"hold:user:{user_id}:booking_id")
         if existing_booking_id:

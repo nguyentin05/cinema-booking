@@ -23,6 +23,9 @@ def create_app(cfg_name):
     cfg.init_app(app)
     db.init_app(app=app)
     login_manager.init_app(app=app)
+    if app.config.get("TESTING"):
+        login_manager.session_protection = None
+        
     cache.init_app(app=app)
     stripe.api_key = app.config.get("STRIPE_SECRET_KEY")
     redis_client = redis.Redis(

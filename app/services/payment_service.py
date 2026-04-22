@@ -25,6 +25,9 @@ class PaymentService(ABC):
         if booking.status == BookingStatus.CANCELLED:
             raise BookingHasCancelled()
 
+        if booking.status == BookingStatus.PAID:
+            raise BadRequest("This booking has already been paid")
+
         return booking
 
     def process_payment(self, booking_id, **kwargs):
@@ -41,6 +44,10 @@ class PaymentService(ABC):
         except (BookingHasExpired, BookingHasCancelled):
             self.handle_expired_or_cancelled_booking(booking_id, **kwargs)
             return
+        except BadRequest as e:
+            if "already been paid" in str(e.description):
+                return
+            raise
         except Exception:
             raise
 
