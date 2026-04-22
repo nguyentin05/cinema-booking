@@ -46,6 +46,9 @@ class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     PAGE_SIZE = 4
+    WTF_CSRF_ENABLED = False
+    SESSION_PROTECTION = None
+    CACHE_TYPE = "SimpleCache"
 
 
 class StagingConfig(Config):
