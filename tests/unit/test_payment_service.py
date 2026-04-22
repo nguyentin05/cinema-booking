@@ -116,6 +116,13 @@ class TestPaymentServiceBase:
 
         mock_db.session.rollback.assert_called_once()
 
+    def test_validate_booking_expires_at_boundary(self, mocker, sample_booking):
+        sample_booking.expires_at = datetime.now()
+        sample_booking.status = BookingStatus.PENDING
+        mock_query = mocker.patch("app.services.payment_service.Booking.query")
+        mock_query.get.return_value = sample_booking
+        with pytest.raises(BookingHasExpired):
+            PaymentService._validate_booking(1)
 
 class TestStripePaymentService:
     def test_process_payment_success(self, mocker, sample_booking):
