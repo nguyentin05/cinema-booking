@@ -32,7 +32,7 @@ def db_session(init_db):
     db.session.rollback()
     db.session.remove()
 
-@pytest.fixture
+@pytest.fixture(autouse=True)
 def redis_client(test_app):
     fake_redis_client = fakeredis.FakeRedis(decode_responses=True)
     test_app.extensions['redis'] = fake_redis_client
