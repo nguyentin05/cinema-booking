@@ -1,36 +1,67 @@
 services:
-  web:
-    build:
-      context: ../..
-    restart: always
-    container_name: flask_app
-    volumes:
-      - .:/app
-    env_file:
-      - ../../.env
-    environment:
-      - FLASK_HOST=0.0.0.0
+  mysql-db:
+    image: mysql:8.0
+    container_name: mysql-db
     ports:
-      - '5000:5000'
+      - "${MYSQL_PORT:-3309}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER:-cinema_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 600s
+
+  init-db:
+    build: ../..
+    command: python init_db.py
     depends_on:
       mysql-db:
         condition: service_healthy
 
-  mysql-db:
-    image: mysql:8.0
-    container_name: cinema_mysql
+  redis:
+    image: redis:8.4.2-alpine3.22
+    container_name: redis
+    restart: always
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  web:
+    build:
+      context: ../..
+    container_name: web_app
+    ports:
+      - "${APP_PORT:-5000}:5000"
     restart: always
     env_file:
       - ../../.env
-    ports:
-      - '3309:3306'
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
+    environment:
+      - APP_ENV=dev
+      - FLASK_HOST=0.0.0.0
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://${MYSQL_USER:-cinema_user}:${MYSQL_PASSWORD}@mysql-db:3306/${MYSQL_DATABASE}
+      - REDIS_HOST=redis
+    depends_on:
+      mysql-db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe_cli
+    command: listen --api-key ${STRIPE_SECRET_KEY} --forward-to web:5000/api/payment/stripe/callback
+    depends_on:
+      - web
 
 volumes:
   mysql_data:
