@@ -1,38 +1,9 @@
 services:
-  mysql-db:
-    image: mysql:8.0
-    container_name: mysql-db
-    ports:
-      - "${MYSQL_PORT}:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    restart: always
-    volumes:
-      - mysql_data:/var/lib/mysql
-    healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
-      interval: 10s
-      timeout: 10s
-      retries: 10
-      start_period: 600s
-
-  redis:
-    image: redis:8.4.2-alpine3.22
-    container_name: redis
-    restart: always
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
   web:
     image: ${IMAGE_NAME}:${IMAGE_TAG:-staging}
     container_name: web_app
-    command: sh -c "python init_db.py && gunicorn --bind 0.0.0.0:5000 run:app"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "5000:5000"
     restart: always
@@ -41,8 +12,25 @@ services:
     environment:
       - APP_ENV=staging
       - FLASK_HOST=0.0.0.0
-      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@localhost:3306/${MYSQL_DATABASE}
-      - REDIS_HOST=localhost
+      - SECRET_KEY=${SECRET_KEY}
+      - MAX_BOOKING_SEAT_EACH_SHOWTIME=${MAX_BOOKING_SEAT_EACH_SHOWTIME}
+      - BOOKING_EXPIRATION_TIME=${BOOKING_EXPIRATION_TIME}
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@host.docker.internal:3306/${MYSQL_DATABASE}
+      - REDIS_HOST=host.docker.internal
+      - REDIS_PORT=6379
+      - REDIS_DB=0
+      - REDIS_PASSWORD=
+      - STRIPE_PUBLIC_KEY=${STRIPE_PUBLIC_KEY}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - CLOUD_NAME=${CLOUD_NAME}
+      - CLOUD_API_KEY=${CLOUD_API_KEY}
+      - CLOUD_API_SECRET=${CLOUD_API_SECRET}
 
-volumes:
-  mysql_data:
+  stripe-cli:
+    image: stripe/stripe-cli:latest
+    container_name: stripe_cli
+    command: listen --api-key ${STRIPE_SECRET_KEY} --forward-to http://web_app:5000/api/payment/stripe/callback
+    restart: always
+    depends_on:
+      - web

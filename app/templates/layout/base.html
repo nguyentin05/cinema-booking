@@ -106,7 +106,8 @@ function openPaymentModal(booking) {
     bookingInProgress = booking
   }
 
-    const expiresAt = new Date(bookingInProgress.expires_at).getTime();
+    const rawExpires = bookingInProgress.expires_at;
+    const expiresAt = new Date(rawExpires.endsWith('Z') ? rawExpires : rawExpires + 'Z').getTime();
     const now = new Date().getTime();
 
     if (expiresAt <= now) {
