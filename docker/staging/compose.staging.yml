@@ -1,44 +1,48 @@
 services:
   mysql-db:
     image: mysql:8.0
+    container_name: mysql-db
+    ports:
+      - "${MYSQL_PORT}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: cinema
-      MYSQL_USER: cinema_user
-      MYSQL_PASSWORD: cinema_pass
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    restart: always
+    volumes:
+      - mysql_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 5s
-      timeout: 5s
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 10s
       retries: 10
+      start_period: 600s
 
   redis:
-    image: redis:latest
+    image: redis:8.4.2-alpine3.22
+    container_name: redis
+    restart: always
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: [ "CMD", "redis-cli", "ping" ]
       interval: 5s
       timeout: 3s
       retries: 5
 
-  app:
+  web:
     image: ${IMAGE_NAME}:${IMAGE_TAG:-staging}
+    container_name: web_app
+    command: sh -c "python init_db.py && gunicorn --bind 0.0.0.0:5000 run:app"
     ports:
       - "5000:5000"
+    restart: always
+    env_file:
+      - ../../.env
     environment:
       - APP_ENV=staging
       - FLASK_HOST=0.0.0.0
-      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://cinema_user:cinema_pass@mysql-db:3306/cinema
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - REDIS_DB=0
-      - REDIS_PASSWORD=
-    depends_on:
-      mysql-db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "python", "-c", "import socket; s=socket.socket(); s.connect(('localhost', 5000)); s.close()"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@localhost:3306/${MYSQL_DATABASE}
+      - REDIS_HOST=localhost
+
+volumes:
+  mysql_data:

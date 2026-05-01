@@ -19,7 +19,11 @@ class Config:
     STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
     STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
     CACHE_TYPE = "RedisCache"
-    CACHE_REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+    CACHE_REDIS_URL = (
+        f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+        if REDIS_PASSWORD
+        else f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+    )
     CACHE_DEFAULT_TIMEOUT = 600
     ROOM_NUM = 5
     SEAT_PER_ROW = 10
