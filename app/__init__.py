@@ -61,6 +61,10 @@ def create_app(cfg_name):
     from app.controllers.booking_controller import booking_page
     app.register_blueprint(booking_page, url_prefix='/booking')
 
+    @app.route("/health")
+    def health():
+        return jsonify({"status": "ok"}), 200
+
     return app
 
 
