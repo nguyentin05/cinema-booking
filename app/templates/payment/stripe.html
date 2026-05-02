@@ -102,7 +102,8 @@
       expiresAtStr = bookingInProgress.expires_at
       if (!expiresAtStr) return;
 
-      const expiresAt = new Date(expiresAtStr).getTime();
+      const expiresAtStrUTC = expiresAtStr.endsWith('Z') ? expiresAtStr : expiresAtStr + 'Z';
+      const expiresAt = new Date(expiresAtStrUTC).getTime();
       const timerDisplay = document.getElementById('timer');
 
       const countdownInterval = setInterval(function() {
