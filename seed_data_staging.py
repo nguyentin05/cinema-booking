@@ -12,7 +12,7 @@ def seed_data():
             user = User(email='test1@gmail.com', name='Test User', password='Test1234!')
             db.session.add(user)
             db.session.flush()
-            print(f"Đã tạo user test1@gmail.com")
+            print("Đã tạo user test1@gmail.com")
 
         room = Room.query.first()
         if not room:
